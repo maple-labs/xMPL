@@ -10,7 +10,7 @@ This repo contains a set of contracts to facilitate on-chain distribution of ves
 #### Setup
 ```sh
 git clone git@github.com:maple-labs/revenue-distribution-token.git
-cd revenue-distribution-token
+cd xMPL
 forge update
 ```
 #### Running Tests
