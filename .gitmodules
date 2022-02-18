@@ -1,0 +1,9 @@
+[submodule "modules/revenue-distribution-token"]
+	path = modules/revenue-distribution-token
+	url = git@github.com:maple-labs/revenue-distribution-token.git
+[submodule "modules/mpl-migration"]
+	path = modules/mpl-migration
+	url = git@github.com:maple-labs/mpl-migration.git
+[submodule "modules/contract-test-utils"]
+	path = modules/contract-test-utils
+	url = git@github.com:maple-labs/contract-test-utils.git
