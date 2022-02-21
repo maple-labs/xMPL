@@ -14,5 +14,5 @@ contract CompromisedMigrator {
     function migrate(uint256 amount_) external {
         // do nothing
     }
-
+    
 }
