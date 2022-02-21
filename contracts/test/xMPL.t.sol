@@ -100,5 +100,4 @@ contract xMPLTest is TestUtils {
         assertEq(rdt.underlying(), address(newToken));
     }
 
-
 }
