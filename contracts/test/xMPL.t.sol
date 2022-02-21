@@ -8,6 +8,8 @@ import { Migrator }  from "../../modules/mpl-migration/contracts/Migrator.sol";
 import { MockERC20 } from "../../modules/mpl-migration/modules/erc20/contracts/test/mocks/MockERC20.sol";
 import { Staker }    from "../../modules/revenue-distribution-token/contracts/test/accounts/Staker.sol";
 
+import { Staker } from "../../modules/revenue-distribution-token/src/test/accounts/Staker.sol";
+
 import { xMPL } from "../xMPL.sol";
 
 import { xMPLOwner } from "./accounts/Owner.sol";
@@ -274,6 +276,126 @@ contract xMPLTest is TestUtils {
         assertEq(xmpl.scheduledMigrator(),           address(migrator));
         assertEq(xmpl.scheduledNewAsset(),           address(newAsset));
         assertEq(xmpl.scheduledMigrationTimestamp(), START + 1 + xmpl.MINIMUM_MIGRATION_DELAY());
+    }
+
+}
+
+///@dev Copied from modules/revenue-distribution-token/src/test/ReveneuDistributionToken.sol
+contract FullMigrationTest is TestUtils {
+
+    
+
+    Migrator  migrator;
+    MockERC20 underlying;
+    MockERC20 newUnderlying;
+    xMPL      rdToken;
+
+    bytes constant ARITHMETIC_ERROR = abi.encodeWithSignature("Panic(uint256)", 0x11);
+
+    uint256 start;
+
+    function setUp() public virtual {
+        // Use non-zero timestamp
+        start = 10_000;
+        vm.warp(start);
+
+        underlying    = new MockERC20("Old Token", "OT", 18);
+        newUnderlying = new MockERC20("New Token", "NT", 18);
+        migrator      = new Migrator(address(underlying), address(newUnderlying));
+        rdToken       = new xMPL("Revenue Distribution Token", "RDT", address(this), address(underlying), 1e30);
+    }
+
+    function test_fullMigrationStory(uint256 depositAmount, uint256 vestingAmount, uint256 vestingPeriod) external {
+        depositAmount = constrictToRange(depositAmount, 1e6,        1e30);                    // 1 billion at WAD precision
+        vestingAmount = constrictToRange(vestingAmount, 1e6,        1e30);                    // 1 billion at WAD precision
+        vestingPeriod = constrictToRange(vestingPeriod, 10 seconds, 100_000 days) / 10 * 10;  // Must be divisible by 10 for for loop 10% increment calculations // TODO: Add a zero case test
+
+        Staker staker = new Staker();
+
+        underlying.mint(address(staker), depositAmount);
+
+        staker.erc20_approve(address(underlying), address(rdToken), depositAmount);
+        staker.rdToken_deposit(address(rdToken), depositAmount);
+
+        assertEq(rdToken.freeUnderlying(),      depositAmount);
+        assertEq(rdToken.totalHoldings(),       depositAmount);
+        assertEq(rdToken.exchangeRate(),        1e30);
+        assertEq(rdToken.issuanceRate(),        0);
+        assertEq(rdToken.lastUpdated(),         start);
+        assertEq(rdToken.vestingPeriodFinish(), 0);
+
+        vm.warp(start + 1 days);
+
+        assertEq(rdToken.totalHoldings(),  depositAmount);  // No change
+
+        vm.warp(start);  // Warp back after demonstrating totalHoldings is not time-dependent before vesting starts
+
+        _depositAndUpdateVesting(vestingAmount, vestingPeriod);
+
+        uint256 expectedRate = vestingAmount * 1e30 / vestingPeriod;
+
+        assertEq(rdToken.freeUnderlying(),      depositAmount);
+        assertEq(rdToken.totalHoldings(),       depositAmount);
+        assertEq(rdToken.exchangeRate(),        1e30);
+        assertEq(rdToken.issuanceRate(),        expectedRate);
+        assertEq(rdToken.lastUpdated(),         start);
+        assertEq(rdToken.vestingPeriodFinish(), start + vestingPeriod);
+
+        // Warp and assert vesting in 10% increments
+        for (uint256 i = 1; i < 10; ++i) {
+            vm.warp(start + vestingPeriod * i / 10);  // 10% intervals of vesting schedule
+
+            uint256 expectedTotalHoldings = depositAmount + expectedRate * (block.timestamp - start) / 1e30;
+
+            assertWithinDiff(rdToken.balanceOfUnderlying(address(staker)), expectedTotalHoldings, 1);
+
+            // Do the migration
+            if (i == 5) {
+                newUnderlying.mint(address(migrator), underlying.balanceOf(address(rdToken)));
+                rdToken.migrateAll(address(migrator), address(newUnderlying));
+            }
+
+            assertEq(rdToken.totalHoldings(), expectedTotalHoldings);
+            assertEq(rdToken.exchangeRate(),  expectedTotalHoldings * 1e30 / depositAmount);
+        }
+
+        vm.warp(start + vestingPeriod);
+
+        uint256 expectedFinalTotal = depositAmount + vestingAmount;
+
+        // Assertions below will use the newUnderlying token
+        assertWithinDiff(rdToken.balanceOfUnderlying(address(staker)), expectedFinalTotal, 2);
+
+        assertWithinDiff(rdToken.totalHoldings(), expectedFinalTotal,                             1);
+        assertWithinDiff(rdToken.exchangeRate(),  rdToken.totalHoldings() * 1e30 / depositAmount, 1);  // Using totalHoldings because of rounding
+
+        assertEq(newUnderlying.balanceOf(address(rdToken)), depositAmount + vestingAmount);
+
+        assertEq(newUnderlying.balanceOf(address(staker)), 0);
+        assertEq(rdToken.balanceOf(address(staker)),    depositAmount);
+
+        staker.rdToken_redeem(address(rdToken), depositAmount);  // Use `redeem` so rdToken amount can be used to burn 100% of tokens
+
+        assertWithinDiff(rdToken.freeUnderlying(), 0, 1);
+        assertWithinDiff(rdToken.totalHoldings(),  0, 1);
+
+        assertEq(rdToken.exchangeRate(),        1e30);                   // Exchange rate returns to zero when empty
+        assertEq(rdToken.issuanceRate(),        expectedRate);           // TODO: Investigate implications of non-zero issuanceRate here
+        assertEq(rdToken.lastUpdated(),         start + vestingPeriod);  // This makes issuanceRate * time zero
+        assertEq(rdToken.vestingPeriodFinish(), start + vestingPeriod);
+
+        assertWithinDiff(newUnderlying.balanceOf(address(rdToken)), 0, 2);
+
+        assertEq(rdToken.balanceOfUnderlying(address(staker)), 0);
+
+        assertWithinDiff(newUnderlying.balanceOf(address(staker)), depositAmount + vestingAmount, 2);
+        assertWithinDiff(rdToken.balanceOf(address(staker)),    0,                             1);
+    }
+
+    function _depositAndUpdateVesting(uint256 vestingAmount_, uint256 vestingPeriod_) internal {
+        underlying.mint(address(this), vestingAmount_);
+        underlying.transfer(address(rdToken), vestingAmount_);
+        rdToken.updateVestingSchedule(vestingPeriod_);
     }
 
 }
