@@ -10,9 +10,12 @@ import { Staker }    from "../../modules/revenue-distribution-token/contracts/te
 
 import { Staker } from "../../modules/revenue-distribution-token/src/test/accounts/Staker.sol";
 
+import { EntryExitTest, RevenueStreamingTest, RevenueDistributionToken } from "../../modules/revenue-distribution-token/src/test/RevenueDistributionToken.t.sol";
+
 import { xMPL } from "../xMPL.sol";
 
 import { xMPLOwner } from "./accounts/Owner.sol";
+
 
 contract xMPLTest is TestUtils {
 
@@ -280,10 +283,32 @@ contract xMPLTest is TestUtils {
 
 }
 
+contract xMPLEntryExitTest is EntryExitTest {
+
+    function setUp() public override {
+        super.setUp();
+        
+        address rdt = address(new xMPL("xMPL", "xMPL", address(this), address(underlying), 1e30));
+
+        rdToken = RevenueDistributionToken(rdt);
+    }
+
+}
+
+contract xMPLRevenueStreamingTest is RevenueStreamingTest {
+
+    function setUp() public override {
+        super.setUp();
+        
+        address rdt = address(new xMPL("xMPL", "xMPL", address(this), address(underlying), 1e30));
+
+        rdToken = RevenueDistributionToken(rdt);
+    }
+    
+}
+
 ///@dev Copied from modules/revenue-distribution-token/src/test/ReveneuDistributionToken.sol
 contract FullMigrationTest is TestUtils {
-
-    
 
     Migrator  migrator;
     MockERC20 underlying;
@@ -364,12 +389,14 @@ contract FullMigrationTest is TestUtils {
         uint256 expectedFinalTotal = depositAmount + vestingAmount;
 
         // Assertions below will use the newUnderlying token
+
         assertWithinDiff(rdToken.balanceOfUnderlying(address(staker)), expectedFinalTotal, 2);
 
         assertWithinDiff(rdToken.totalHoldings(), expectedFinalTotal,                             1);
         assertWithinDiff(rdToken.exchangeRate(),  rdToken.totalHoldings() * 1e30 / depositAmount, 1);  // Using totalHoldings because of rounding
 
         assertEq(newUnderlying.balanceOf(address(rdToken)), depositAmount + vestingAmount);
+        assertEq(underlying.balanceOf(address(rdToken)),    0);
 
         assertEq(newUnderlying.balanceOf(address(staker)), 0);
         assertEq(rdToken.balanceOf(address(staker)),    depositAmount);
@@ -390,6 +417,8 @@ contract FullMigrationTest is TestUtils {
 
         assertWithinDiff(newUnderlying.balanceOf(address(staker)), depositAmount + vestingAmount, 2);
         assertWithinDiff(rdToken.balanceOf(address(staker)),    0,                             1);
+
+        assertEq(underlying.balanceOf(address(staker)),0);
     }
 
     function _depositAndUpdateVesting(uint256 vestingAmount_, uint256 vestingPeriod_) internal {
