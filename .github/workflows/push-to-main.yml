@@ -25,4 +25,5 @@ jobs:
       env:
         ETH_RPC_URL: ${{ secrets.ETH_RPC_URL }}
       run: ./test.sh -r 50000
+
       

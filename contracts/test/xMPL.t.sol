@@ -8,7 +8,7 @@ import { Migrator }  from "../../modules/mpl-migration/contracts/Migrator.sol";
 
 import { xMPL } from "../xMPL.sol";
 
-import { xMPLOwner} from "./accounts/Owner.sol";
+import { xMPLOwner } from "./accounts/Owner.sol";
 
 import { CompromisedMigrator } from "./mocks/Mocks.sol";
 
@@ -19,9 +19,9 @@ contract xMPLTest is TestUtils {
     Migrator  migrator;
     MockERC20 newToken;
     MockERC20 oldToken;
-    xMPLOwner owner;
-    xMPLOwner notOwner;
     xMPL      rdt;
+    xMPLOwner notOwner;
+    xMPLOwner owner;
 
     function setUp() external {
         oldToken = new MockERC20("Old Token", "OT", 18);
@@ -37,28 +37,28 @@ contract xMPLTest is TestUtils {
         rdt = new xMPL("xMPL", "xMPL", address(owner), address(oldToken), 1e30);
     }
 
-    function test_migration(uint256 amount_) external {
+    function test_migrateAll_migration(uint256 amount_) external {
         amount_ = constrictToRange(amount_, 1, OLD_SUPPLY);
         oldToken.mint(address(rdt), amount_);
 
         assertEq(oldToken.balanceOf(address(rdt)), amount_);
         assertEq(newToken.balanceOf(address(rdt)), 0);
-        assertEq(rdt.underlying(), address(oldToken));
+        assertEq(rdt.underlying(),                 address(oldToken));
 
         owner.xMPL_migrateAll(address(rdt), address(migrator), address(newToken));
 
         assertEq(oldToken.balanceOf(address(rdt)), 0);
         assertEq(newToken.balanceOf(address(rdt)), amount_);
-        assertEq(rdt.underlying(), address(newToken));
+        assertEq(rdt.underlying(),                 address(newToken));
     }
 
-    function test_failIfNotOwner(uint256 amount_) external {
+    function test_migrateAll_failIfNotOwner(uint256 amount_) external {
         amount_ = constrictToRange(amount_, 1, OLD_SUPPLY);
         oldToken.mint(address(rdt), amount_);
 
         assertEq(oldToken.balanceOf(address(rdt)), amount_);
         assertEq(newToken.balanceOf(address(rdt)), 0);
-        assertEq(rdt.underlying(), address(oldToken));
+        assertEq(rdt.underlying(),                 address(oldToken));
 
         vm.expectRevert("XMPL:MA:NOT_OWNER");
         notOwner.xMPL_migrateAll(address(rdt), address(migrator), address(newToken));
@@ -67,10 +67,10 @@ contract xMPLTest is TestUtils {
 
         assertEq(oldToken.balanceOf(address(rdt)), 0);
         assertEq(newToken.balanceOf(address(rdt)), amount_);
-        assertEq(rdt.underlying(), address(newToken));
+        assertEq(rdt.underlying(),                 address(newToken));
     }
 
-    function test_failIfWrongToken(uint256 amount_) external {
+    function test_migrateAll_failIfWrongToken(uint256 amount_) external {
         amount_ = constrictToRange(amount_, 1, OLD_SUPPLY);
         oldToken.mint(address(rdt), amount_);
 
@@ -81,10 +81,10 @@ contract xMPLTest is TestUtils {
 
         assertEq(oldToken.balanceOf(address(rdt)), 0);
         assertEq(newToken.balanceOf(address(rdt)), amount_);
-        assertEq(rdt.underlying(), address(newToken));
+        assertEq(rdt.underlying(),                 address(newToken));
     }
 
-    function test_failIfMismatchedBalance(uint256 amount_) external {
+    function test_migrateAll_failIfMismatchedBalance(uint256 amount_) external {
         amount_ = constrictToRange(amount_, 1, OLD_SUPPLY);
         oldToken.mint(address(rdt), amount_);
 
@@ -97,7 +97,7 @@ contract xMPLTest is TestUtils {
 
         assertEq(oldToken.balanceOf(address(rdt)), 0);
         assertEq(newToken.balanceOf(address(rdt)), amount_);
-        assertEq(rdt.underlying(), address(newToken));
+        assertEq(rdt.underlying(),                 address(newToken));
     }
 
 }
