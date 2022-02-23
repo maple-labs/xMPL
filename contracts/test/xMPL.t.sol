@@ -56,10 +56,6 @@ contract xMPLTest is TestUtils {
         amount_ = constrictToRange(amount_, 1, OLD_SUPPLY);
         oldToken.mint(address(rdt), amount_);
 
-        assertEq(oldToken.balanceOf(address(rdt)), amount_);
-        assertEq(newToken.balanceOf(address(rdt)), 0);
-        assertEq(rdt.underlying(),                 address(oldToken));
-
         vm.expectRevert("XMPL:MA:NOT_OWNER");
         notOwner.xMPL_migrateAll(address(rdt), address(migrator), address(newToken));
 

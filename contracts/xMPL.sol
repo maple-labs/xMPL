@@ -8,7 +8,7 @@ import { Migrator } from "../modules/mpl-migration/contracts/Migrator.sol";
 contract xMPL is RevenueDistributionToken {
 
     constructor(string memory name_, string memory symbol_, address owner_, address underlying_, uint256 precision_)
-        RevenueDistributionToken(name_, symbol_, owner_, underlying_, precision_){}
+        RevenueDistributionToken(name_, symbol_, owner_, underlying_, precision_){ }
 
     /********************************/
     /*** Administrative Functions ***/
@@ -17,9 +17,9 @@ contract xMPL is RevenueDistributionToken {
     function migrateAll(address migrator_, address newUnderlying_) external {
         require(msg.sender == owner, "XMPL:MA:NOT_OWNER");
         
-        ERC20 currentUnderlying = ERC20(underlying);
-        ERC20 newUnderlying     = ERC20(newUnderlying_);
-        Migrator migrator       = Migrator(migrator_);
+        ERC20    currentUnderlying = ERC20(underlying);
+        ERC20    newUnderlying     = ERC20(newUnderlying_);
+        Migrator migrator          = Migrator(migrator_);
 
         require(migrator.newToken() == newUnderlying_,"XMPL:MA:WRONG_TOKEN");
 
