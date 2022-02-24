@@ -13,20 +13,20 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install Foundry
-      uses: onbjerg/foundry-toolchain@v1
-      with:
-        version: nightly
+    # - name: Install Foundry
+    #   uses: onbjerg/foundry-toolchain@v1
+    #   with:
+    #     version: nightly
 
-    - name: Checkout mpl-migration submodule
-        env:
-          SSH_KEY_MPL_MIGRATION: ${{secrets.SSH_KEY_MPL_MIGRATION}}
-        shell: bash
-        run: |
-          mkdir $HOME/.ssh
-          echo "$SSH_KEY_MPL_MIGRATION" > $HOME/.ssh/id_rsa
-          chmod 600 $HOME/.ssh/id_rsa
-          git submodule update --init --recursive modules/mpl-migration
+    # - name: Checkout mpl-migration submodule
+    #     env:
+    #       SSH_KEY_MPL_MIGRATION: ${{secrets.SSH_KEY_MPL_MIGRATION}}
+    #     shell: bash
+    #     run: |
+    #       mkdir $HOME/.ssh
+    #       echo "$SSH_KEY_MPL_MIGRATION" > $HOME/.ssh/id_rsa
+    #       chmod 600 $HOME/.ssh/id_rsa
+    #       git submodule update --init --recursive modules/mpl-migration
 
     # - name: Checkout revenue-distribution-token submodule
     #     env:
