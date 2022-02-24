@@ -1,6 +1,11 @@
 name: Basic PR Tests
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - sc-4833-update-ci-private-submodules
+
+# on: [pull_request]
 
 jobs:
   run-ci:
@@ -23,23 +28,23 @@ jobs:
           chmod 600 $HOME/.ssh/id_rsa
           git submodule update --init --recursive modules/mpl-migration
 
-    - name: Checkout revenue-distribution-token submodule
-        env:
-          SSH_KEY_RDT: ${{secrets.SSH_KEY_RDT}}
-        shell: bash
-        run: |
-          rm -rf $HOME/.ssh/id_rsa
-          echo "$SSH_KEY_RDT" > $HOME/.ssh/id_rsa
-          chmod 600 $HOME/.ssh/id_rsa
-          git submodule update --init --recursive modules/revenue-distribution-token
+    # - name: Checkout revenue-distribution-token submodule
+    #     env:
+    #       SSH_KEY_RDT: ${{secrets.SSH_KEY_RDT}}
+    #     shell: bash
+    #     run: |
+    #       rm -rf $HOME/.ssh/id_rsa
+    #       echo "$SSH_KEY_RDT" > $HOME/.ssh/id_rsa
+    #       chmod 600 $HOME/.ssh/id_rsa
+    #       git submodule update --init --recursive modules/revenue-distribution-token
 
-    - name: Checkout public submodules
-      shell: bash
-      run: |
-        git config --global url."https://github.com/".insteadOf "git@github.com:"
-        forge update
+    # - name: Checkout public submodules
+    #   shell: bash
+    #   run: |
+    #     git config --global url."https://github.com/".insteadOf "git@github.com:"
+    #     forge update
 
-    - name: Run forge tests
-      env:
-        ETH_RPC_URL: ${{ secrets.ETH_RPC_URL }}
-      run: ./test.sh -r 10000
+    # - name: Run forge tests
+    #   env:
+    #     ETH_RPC_URL: ${{ secrets.ETH_RPC_URL }}
+    #   run: ./test.sh -r 10000
