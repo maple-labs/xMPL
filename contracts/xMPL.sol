@@ -21,7 +21,7 @@ contract xMPL is RevenueDistributionToken {
         ERC20    newUnderlying     = ERC20(newUnderlying_);
         Migrator migrator          = Migrator(migrator_);
 
-        require(migrator.newToken() == newUnderlying_,"XMPL:MA:WRONG_TOKEN");
+        require(migrator.newToken() == newUnderlying_, "XMPL:MA:WRONG_TOKEN");
 
         uint256 balance = currentUnderlying.balanceOf(address(this));
         currentUnderlying.approve(migrator_, balance);
