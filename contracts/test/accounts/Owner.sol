@@ -7,8 +7,8 @@ import { IXMPL } from "../../interfaces/IXMPL.sol";
 
 contract xMPLOwner is Owner {
 
-    function xmpl_migrateAll(address rdt_, address migrator_, address newToken_) external {
-        IXMPL(rdt_).migrateAll(migrator_, newToken_);
+    function xMPL_migrateAll(address xmpl_, address migrator_, address newToken_) external {
+        IXMPL(xmpl_).migrateAll(migrator_, newToken_);
     }
 
 }  

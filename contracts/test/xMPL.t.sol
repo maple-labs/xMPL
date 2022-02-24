@@ -75,7 +75,7 @@ contract xMPLTest is TestUtils {
         assertWithinDiff(xmpl.balanceOfUnderlying(address(staker)), DEPOSITED + amount_, 1);
         assertWithinDiff(xmpl.totalHoldings(),                      DEPOSITED + amount_, 1);
 
-        owner.xmpl_migrateAll(address(xmpl), address(migrator), address(newToken));
+        owner.xMPL_migrateAll(address(xmpl), address(migrator), address(newToken));
 
         assertEq(oldToken.balanceOf(address(xmpl)), 0);
         assertEq(newToken.balanceOf(address(xmpl)), amount_ + DEPOSITED);
@@ -101,18 +101,18 @@ contract xMPLTest is TestUtils {
         uint256 expectedRate     = amount_ * 1e30 / vestingPeriod_;
         uint256 expectedHoldings = DEPOSITED + expectedRate * (block.timestamp - start) / 1e30;
 
-        assertEq(oldToken.balanceOf(address(xmpl)),       amount_ + DEPOSITED);
-        assertEq(newToken.balanceOf(address(xmpl)),       0);
+        assertEq(oldToken.balanceOf(address(xmpl)), amount_ + DEPOSITED);
+        assertEq(newToken.balanceOf(address(xmpl)), 0);
         assertEq(xmpl.underlying(),                 address(oldToken));
         assertEq(xmpl.totalHoldings(),              expectedHoldings);
         assertEq(xmpl.exchangeRate(),               expectedHoldings * 1e30 / DEPOSITED);
 
         assertWithinDiff(xmpl.balanceOfUnderlying(address(staker)), expectedHoldings, 1);
 
-        owner.xmpl_migrateAll(address(xmpl), address(migrator), address(newToken));
+        owner.xMPL_migrateAll(address(xmpl), address(migrator), address(newToken));
 
-        assertEq(oldToken.balanceOf(address(xmpl)),       0);
-        assertEq(newToken.balanceOf(address(xmpl)),       amount_ + DEPOSITED);
+        assertEq(oldToken.balanceOf(address(xmpl)), 0);
+        assertEq(newToken.balanceOf(address(xmpl)), amount_ + DEPOSITED);
         assertEq(xmpl.underlying(),                 address(newToken));
         assertEq(xmpl.totalHoldings(),              expectedHoldings);
         assertEq(xmpl.exchangeRate(),               expectedHoldings * 1e30 / DEPOSITED);
@@ -125,9 +125,9 @@ contract xMPLTest is TestUtils {
         oldToken.mint(address(xmpl), amount_);
 
         vm.expectRevert("XMPL:MA:NOT_OWNER");
-        notOwner.xmpl_migrateAll(address(xmpl), address(migrator), address(newToken));
+        notOwner.xMPL_migrateAll(address(xmpl), address(migrator), address(newToken));
 
-        owner.xmpl_migrateAll(address(xmpl), address(migrator), address(newToken));
+        owner.xMPL_migrateAll(address(xmpl), address(migrator), address(newToken));
 
         assertEq(oldToken.balanceOf(address(xmpl)), 0);
         assertEq(newToken.balanceOf(address(xmpl)), amount_ + DEPOSITED);
@@ -139,9 +139,9 @@ contract xMPLTest is TestUtils {
         oldToken.mint(address(xmpl), amount_);
 
         vm.expectRevert("XMPL:MA:WRONG_TOKEN");
-        owner.xmpl_migrateAll(address(xmpl), address(migrator), address(oldToken));
+        owner.xMPL_migrateAll(address(xmpl), address(migrator), address(oldToken));
 
-        owner.xmpl_migrateAll(address(xmpl), address(migrator), address(newToken));
+        owner.xMPL_migrateAll(address(xmpl), address(migrator), address(newToken));
 
         assertEq(oldToken.balanceOf(address(xmpl)), 0);
         assertEq(newToken.balanceOf(address(xmpl)), amount_ + DEPOSITED);
@@ -155,9 +155,9 @@ contract xMPLTest is TestUtils {
         CompromisedMigrator badMigrator = new CompromisedMigrator(address(oldToken), address(newToken));
 
         vm.expectRevert("XMPL:MA:WRONG_AMOUNT");
-        owner.xmpl_migrateAll(address(xmpl), address(badMigrator), address(newToken));
+        owner.xMPL_migrateAll(address(xmpl), address(badMigrator), address(newToken));
 
-        owner.xmpl_migrateAll(address(xmpl), address(migrator), address(newToken));
+        owner.xMPL_migrateAll(address(xmpl), address(migrator), address(newToken));
 
         assertEq(oldToken.balanceOf(address(xmpl)), 0);
         assertEq(newToken.balanceOf(address(xmpl)), amount_ + DEPOSITED);
