@@ -16,11 +16,32 @@ jobs:
       with:
         version: nightly
 
-    - name: Checkout submodules
+    - name: Checkout mpl-migration submodule
+      env:
+        SSH_KEY_MPL_MIGRATION: ${{secrets.SSH_KEY_MPL_MIGRATION}}
+      shell: bash
+      run: |
+        mkdir $HOME/.ssh
+        echo "$SSH_KEY_MPL_MIGRATION" > $HOME/.ssh/id_rsa
+        chmod 600 $HOME/.ssh/id_rsa
+        git submodule update --init --recursive modules/mpl-migration
+
+    - name: Checkout revenue-distribution-token submodule
+      env:
+        SSH_KEY_RDT: ${{secrets.SSH_KEY_RDT}}
+      shell: bash
+      run: |
+        rm -rf $HOME/.ssh/id_rsa
+        echo "$SSH_KEY_RDT" > $HOME/.ssh/id_rsa
+        chmod 600 $HOME/.ssh/id_rsa
+        git submodule update --init --recursive modules/revenue-distribution-token
+
+    - name: Checkout public submodules
       shell: bash
       run: |
         git config --global url."https://github.com/".insteadOf "git@github.com:"
         forge update
+
     - name: Run forge tests
       env:
         ETH_RPC_URL: ${{ secrets.ETH_RPC_URL }}
