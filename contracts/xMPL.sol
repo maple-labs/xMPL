@@ -11,38 +11,43 @@ contract xMPL is IXMPL, RevenueDistributionToken {
 
     uint256 internal constant MINIMUM_DELAY = 10 days;
 
+    uint256 internal _migrationScheduled;
     bytes32 internal _migrationHash;
-    uint256 internal _migrationTimestamp;
 
     constructor(string memory name_, string memory symbol_, address owner_, address underlying_, uint256 precision_)
         RevenueDistributionToken(name_, symbol_, owner_, underlying_, precision_) {}
+
+    /*****************/
+    /*** Modifiers ***/
+    /*****************/
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "XMPL:NOT_OWNER");
+        _;
+    }
 
     /********************************/
     /*** Administrative Functions ***/
     /********************************/
 
-    function scheduleMigration(address migrator_, address newUnderlying_) external override {
-        require(msg.sender == owner, "XMPL:SM:NOT_OWNER");
-
+    function scheduleMigration(address migrator_, address newUnderlying_) external override onlyOwner() {
+        _migrationScheduled = block.timestamp;
         _migrationHash      = _calculateHash(migrator_, newUnderlying_);
-        _migrationTimestamp = block.timestamp;
 
         emit MigrationScheduled(underlying, newUnderlying_, migrator_);
     }
 
-    function cancelMigration() external override {
-        require(msg.sender == owner, "XMPL:CM:NOT_OWNER");
-
-        _migrationTimestamp = 0;
+    function cancelMigration() external override onlyOwner() {
+        _cleanupMigration();
 
         emit MigrationCancelled();
     }
 
-    function migrateAll(address migrator_, address newUnderlying_) external override {
-        require(msg.sender == owner, "XMPL:MA:NOT_OWNER");
+    function migrateAll(address migrator_, address newUnderlying_) external override onlyOwner() {
+        uint256 migrationScheduled = _migrationScheduled;
 
-        require(_migrationTimestamp != 0, "XMPL:MA:NOT_SCHEDULED");
-        require(block.timestamp >= _migrationTimestamp + MINIMUM_DELAY, "XMPL:MA:TOO_EARLY");
+        require(migrationScheduled != 0,                                     "XMPL:MA:NOT_SCHEDULED");
+        require(block.timestamp >= migrationScheduled + MINIMUM_DELAY,       "XMPL:MA:TOO_EARLY");
         require(_calculateHash(migrator_, newUnderlying_) == _migrationHash, "XMPL:MA:INVALID_ARGS");
 
         ERC20    currentUnderlying = ERC20(underlying);
@@ -60,6 +65,8 @@ contract xMPL is IXMPL, RevenueDistributionToken {
 
         underlying = newUnderlying_;
 
+        _cleanupMigration();
+
         emit MigrationCompleted(balance);
     }
 
@@ -69,6 +76,11 @@ contract xMPL is IXMPL, RevenueDistributionToken {
 
     function _calculateHash(address migrator_, address underlying_) internal pure returns (bytes32 hash_) {
         hash_ = keccak256(abi.encode(migrator_, underlying_));
+    }
+
+    function _cleanupMigration() internal {
+        delete _migrationScheduled;
+        delete _migrationHash;
     }
 
 }
