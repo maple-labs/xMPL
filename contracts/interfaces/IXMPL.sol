@@ -9,20 +9,30 @@ interface IXMPL is IRevenueDistributionToken {
     /*** Events ***/
     /**************/
 
-    event MigrationScheduled(address from, address to, address migrator);
-
     event MigrationCancelled();
 
-    event MigrationCompleted(uint256 amount);
+    event MigrationPerformed(uint256 amount);
+
+    event MigrationScheduled(address from, address to, address migrator);
 
     /********************************/
     /*** Administrative Functions ***/
     /********************************/
 
-    function scheduleMigration(address migrator_, address newUnderlying_) external;
-
     function cancelMigration() external;
 
-    function migrateAll(address migrator_, address newUnderlying_) external;
+    function performMigration(address migrator_, address newUnderlying_) external;
+
+    function scheduleMigration(address migrator_, address newUnderlying_) external;
+
+    /**********************/
+    /*** View Functions ***/
+    /**********************/
+
+    function migrationHash() external view returns (bytes32 migrationHash_);
+
+    function migrationScheduled() external view returns (uint256 migrationScheduled_);
+
+    function minimumDelay() external view returns (uint256 minimumDelay_);
 
 }
