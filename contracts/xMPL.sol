@@ -31,6 +31,8 @@ contract xMPL is IXMPL, RevenueDistributionToken {
     /********************************/
 
     function cancelMigration() external override onlyOwner() {
+        require(migrationScheduled != 0, "XMPL:CM:NOT_SCHEDULED");
+
         _cleanupMigration();
 
         emit MigrationCancelled();
@@ -39,22 +41,21 @@ contract xMPL is IXMPL, RevenueDistributionToken {
     function performMigration(address migrator_, address newUnderlying_) external override onlyOwner() {
         uint256 migrationScheduled_ = migrationScheduled;
 
-        require(migrationScheduled_ != 0,                                   "XMPL:MA:NOT_SCHEDULED");
-        require(block.timestamp >= migrationScheduled_ + minimumDelay,      "XMPL:MA:TOO_EARLY");
-        require(_calculateHash(migrator_, newUnderlying_) == migrationHash, "XMPL:MA:INVALID_ARGS");
+        require(migrationScheduled_ != 0,                                   "XMPL:PM:NOT_SCHEDULED");
+        require(block.timestamp >= migrationScheduled_ + minimumDelay,      "XMPL:PM:TOO_EARLY");
+        require(_calculateHash(migrator_, newUnderlying_) == migrationHash, "XMPL:PM:INVALID_ARGS");
 
         ERC20    currentUnderlying = ERC20(underlying);
         ERC20    newUnderlying     = ERC20(newUnderlying_);
         Migrator migrator          = Migrator(migrator_);
 
-        require(migrator.newToken() == newUnderlying_, "XMPL:MA:WRONG_TOKEN");
+        require(migrator.newToken() == newUnderlying_, "XMPL:PM:WRONG_TOKEN");
 
         uint256 balance = currentUnderlying.balanceOf(address(this));
         currentUnderlying.approve(migrator_, balance);
-
         migrator.migrate(balance);
 
-        require(newUnderlying.balanceOf(address(this)) >= balance, "XMPL:MA:WRONG_AMOUNT");
+        require(newUnderlying.balanceOf(address(this)) >= balance, "XMPL:PM:WRONG_AMOUNT");
 
         underlying = newUnderlying_;
 
