@@ -177,9 +177,11 @@ contract xMPLTest is TestUtils {
         assertEq(oldUnderlying.balanceOf(address(xmpl)), amount_ + DEPOSITED);
         assertEq(newUnderlying.balanceOf(address(xmpl)), 0);
 
-        assertEq(xmpl.underlying(),    address(oldUnderlying));
-        assertEq(xmpl.totalHoldings(), expectedHoldings);
-        assertEq(xmpl.exchangeRate(),  expectedHoldings * 1e30 / DEPOSITED);
+        assertEq(xmpl.underlying(),         address(oldUnderlying));
+        assertEq(xmpl.totalHoldings(),      expectedHoldings);
+        assertEq(xmpl.exchangeRate(),       expectedHoldings * 1e30 / DEPOSITED);
+        assertEq(xmpl.migrationHash(),      keccak256(abi.encode(address(migrator), address(newUnderlying))));
+        assertEq(xmpl.migrationScheduled(), START);
 
         assertWithinDiff(xmpl.balanceOfUnderlying(address(staker)), DEPOSITED + amount_, 1);
         assertWithinDiff(xmpl.totalHoldings(),                      DEPOSITED + amount_, 1);
@@ -189,9 +191,11 @@ contract xMPLTest is TestUtils {
         assertEq(oldUnderlying.balanceOf(address(xmpl)), 0);
         assertEq(newUnderlying.balanceOf(address(xmpl)), amount_ + DEPOSITED);
 
-        assertEq(xmpl.underlying(),    address(newUnderlying));
-        assertEq(xmpl.totalHoldings(), expectedHoldings);
-        assertEq(xmpl.exchangeRate(),  expectedHoldings * 1e30 / DEPOSITED);
+        assertEq(xmpl.underlying(),         address(newUnderlying));
+        assertEq(xmpl.totalHoldings(),      expectedHoldings);
+        assertEq(xmpl.exchangeRate(),       expectedHoldings * 1e30 / DEPOSITED);
+        assertEq(xmpl.migrationHash(),      0);
+        assertEq(xmpl.migrationScheduled(), 0);
    
         assertWithinDiff(xmpl.balanceOfUnderlying(address(staker)), DEPOSITED + amount_, 1);
         assertWithinDiff(xmpl.totalHoldings(),                      DEPOSITED + amount_, 1);
@@ -216,9 +220,11 @@ contract xMPLTest is TestUtils {
         assertEq(oldUnderlying.balanceOf(address(xmpl)), amount_ + DEPOSITED);
         assertEq(newUnderlying.balanceOf(address(xmpl)), 0);
 
-        assertEq(xmpl.underlying(),    address(oldUnderlying));
-        assertEq(xmpl.totalHoldings(), expectedHoldings);
-        assertEq(xmpl.exchangeRate(),  expectedHoldings * 1e30 / DEPOSITED);
+        assertEq(xmpl.underlying(),         address(oldUnderlying));
+        assertEq(xmpl.totalHoldings(),      expectedHoldings);
+        assertEq(xmpl.exchangeRate(),       expectedHoldings * 1e30 / DEPOSITED);
+        assertEq(xmpl.migrationHash(),      keccak256(abi.encode(address(migrator), address(newUnderlying))));
+        assertEq(xmpl.migrationScheduled(), START);
 
         assertWithinDiff(xmpl.balanceOfUnderlying(address(staker)), expectedHoldings, 1);
 
@@ -227,9 +233,11 @@ contract xMPLTest is TestUtils {
         assertEq(oldUnderlying.balanceOf(address(xmpl)), 0);
         assertEq(newUnderlying.balanceOf(address(xmpl)), amount_ + DEPOSITED);
 
-        assertEq(xmpl.underlying(),    address(newUnderlying));
-        assertEq(xmpl.totalHoldings(), expectedHoldings);
-        assertEq(xmpl.exchangeRate(),  expectedHoldings * 1e30 / DEPOSITED);
+        assertEq(xmpl.underlying(),         address(newUnderlying));
+        assertEq(xmpl.totalHoldings(),      expectedHoldings);
+        assertEq(xmpl.exchangeRate(),       expectedHoldings * 1e30 / DEPOSITED);
+        assertEq(xmpl.migrationHash(),      0);
+        assertEq(xmpl.migrationScheduled(), 0);
    
         assertWithinDiff(xmpl.balanceOfUnderlying(address(staker)), expectedHoldings, 1);
     }
