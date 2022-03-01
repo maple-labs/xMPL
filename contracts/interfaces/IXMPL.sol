@@ -33,6 +33,6 @@ interface IXMPL is IRevenueDistributionToken {
 
     function migrationScheduled() external view returns (uint256 migrationScheduled_);
 
-    function minimumDelay() external view returns (uint256 minimumDelay_);
+    function minimumDelay() external pure returns (uint256 minimumDelay_);
 
 }
