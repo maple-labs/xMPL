@@ -11,6 +11,8 @@ This repo contains a set of contracts to facilitate on-chain distribution of ves
 xMPL inherits the core functionality from Maple's [Revenue Distribution Token](https://github.com/maple-labs/revenue-distribution-token), which allows users to lock assets to earn rewards distributions based on a vesting schedule, with the increased functionality to perform a one time asset migration for the underlying token. This migration will interact with the contracts defined in [mpl-migration](https://github.com/maple-labs/mpl-migration).
 
 
+![Diagram](https://user-images.githubusercontent.com/16119563/156415169-75b2d7b4-8466-447c-b9ad-f9b94d3f6546.jpeg)
+
 ## Testing and Development
 #### Setup
 ```sh
