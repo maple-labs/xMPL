@@ -175,13 +175,13 @@ contract xMPLTest is TestUtils {
         vm.warp(START + xmpl.minimumDelay() + xmpl.vestingPeriodFinish());
 
         uint256 expectedRate     = amount_ * 1e30 / vestingPeriod_;
-        uint256 expectedHoldings = DEPOSITED + expectedRate * vestingPeriod_ / 1e30;
+        uint256 expectedTotalAssets = DEPOSITED + expectedRate * vestingPeriod_ / 1e30;
 
         assertEq(oldAsset.balanceOf(address(xmpl)), amount_ + DEPOSITED);
         assertEq(newAsset.balanceOf(address(xmpl)), 0);
 
         assertEq(xmpl.asset(),                                address(oldAsset));
-        assertEq(xmpl.totalAssets(),                          expectedHoldings);
+        assertEq(xmpl.totalAssets(),                          expectedTotalAssets);
         assertEq(xmpl.convertToAssets(sampleSharesToConvert), sampleSharesToConvert * expectedTotalAssets / DEPOSITED);
         assertEq(xmpl.convertToShares(sampleAssetsToConvert), sampleAssetsToConvert * DEPOSITED / expectedTotalAssets);
         assertEq(xmpl.migrationHash(),                        keccak256(abi.encode(address(migrator), address(newAsset))));
@@ -196,7 +196,7 @@ contract xMPLTest is TestUtils {
         assertEq(newAsset.balanceOf(address(xmpl)), amount_ + DEPOSITED);
 
         assertEq(xmpl.asset(),                                address(newAsset));
-        assertEq(xmpl.totalAssets(),                          expectedHoldings);
+        assertEq(xmpl.totalAssets(),                          expectedTotalAssets);
         assertEq(xmpl.convertToAssets(sampleSharesToConvert), sampleSharesToConvert * expectedTotalAssets / DEPOSITED);
         assertEq(xmpl.convertToShares(sampleAssetsToConvert), sampleAssetsToConvert * DEPOSITED / expectedTotalAssets);
         assertEq(xmpl.migrationHash(),                        0);
@@ -220,19 +220,19 @@ contract xMPLTest is TestUtils {
         vm.warp(START + xmpl.minimumDelay() + warpAmount_);
 
         uint256 expectedRate     = amount_ * 1e30 / vestingPeriod_;
-        uint256 expectedHoldings = DEPOSITED + expectedRate * warpAmount_ / 1e30;
+        uint256 expectedTotalAssets = DEPOSITED + expectedRate * warpAmount_ / 1e30;
 
         assertEq(oldAsset.balanceOf(address(xmpl)), amount_ + DEPOSITED);
         assertEq(newAsset.balanceOf(address(xmpl)), 0);
 
         assertEq(xmpl.asset(),                                address(oldAsset));
-        assertEq(xmpl.totalAssets(),                          expectedHoldings);
+        assertEq(xmpl.totalAssets(),                          expectedTotalAssets);
         assertEq(xmpl.convertToAssets(sampleSharesToConvert), sampleSharesToConvert * expectedTotalAssets / DEPOSITED);
         assertEq(xmpl.convertToShares(sampleAssetsToConvert), sampleAssetsToConvert * DEPOSITED / expectedTotalAssets);
         assertEq(xmpl.migrationHash(),                        keccak256(abi.encode(address(migrator), address(newAsset))));
         assertEq(xmpl.migrationScheduled(),                   START);
 
-        assertWithinDiff(xmpl.balanceOfAssets(address(staker)), expectedHoldings, 1);
+        assertWithinDiff(xmpl.balanceOfAssets(address(staker)), expectedTotalAssets, 1);
 
         owner.xMPL_performMigration(address(xmpl), address(migrator), address(newAsset));
 
@@ -240,13 +240,13 @@ contract xMPLTest is TestUtils {
         assertEq(newAsset.balanceOf(address(xmpl)), amount_ + DEPOSITED);
 
         assertEq(xmpl.asset(),                                address(newAsset));
-        assertEq(xmpl.totalAssets(),                          expectedHoldings);
+        assertEq(xmpl.totalAssets(),                          expectedTotalAssets);
         assertEq(xmpl.convertToAssets(sampleSharesToConvert), sampleSharesToConvert * expectedTotalAssets / DEPOSITED);
         assertEq(xmpl.convertToShares(sampleAssetsToConvert), sampleAssetsToConvert * DEPOSITED / expectedTotalAssets);
         assertEq(xmpl.migrationHash(),                        0);
         assertEq(xmpl.migrationScheduled(),                   0);
 
-        assertWithinDiff(xmpl.balanceOfAssets(address(staker)), expectedHoldings, 1);
+        assertWithinDiff(xmpl.balanceOfAssets(address(staker)), expectedTotalAssets, 1);
     }
 
     function test_scheduleMigration_notOwner() external {
