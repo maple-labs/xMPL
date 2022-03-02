@@ -8,7 +8,7 @@ import { TestUtils } from "../../modules/contract-test-utils/contracts/test.sol"
 import { Migrator }  from "../../modules/mpl-migration/contracts/Migrator.sol";
 import { MockERC20 } from "../../modules/mpl-migration/modules/erc20/src/test/mocks/MockERC20.sol";
 
-import { Staker } from "../../modules/revenue-distribution-token/src/test/accounts/Staker.sol";
+import { Staker } from "../../modules/revenue-distribution-token/contracts/test/accounts/Staker.sol";
 
 import { xMPL } from "../xMPL.sol";
 

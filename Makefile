@@ -1,1 +1,1 @@
-test :; ./test.sh
+test :; ./test.sh -p local
