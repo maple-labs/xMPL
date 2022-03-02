@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.8.7;
 
-import { ERC20, RevenueDistributionToken } from "../modules/revenue-distribution-token/src/RevenueDistributionToken.sol";
+import { ERC20Permit, RevenueDistributionToken } from "../modules/revenue-distribution-token/contracts/RevenueDistributionToken.sol";
 
 import { Migrator } from "../modules/mpl-migration/contracts/Migrator.sol";
 
@@ -14,15 +14,15 @@ contract xMPL is IXMPL, RevenueDistributionToken {
     bytes32 public override migrationHash;
     uint256 public override migrationScheduled;
 
-    constructor(string memory name_, string memory symbol_, address owner_, address underlying_, uint256 precision_)
-        RevenueDistributionToken(name_, symbol_, owner_, underlying_, precision_) { }
+    constructor(string memory name_, string memory symbol_, address owner_, address asset_, uint256 precision_)
+        RevenueDistributionToken(name_, symbol_, owner_, asset_, precision_) { }
 
     /*****************/
     /*** Modifiers ***/
     /*****************/
 
     modifier onlyOwner {
-        require(msg.sender == owner, "XMPL:NOT_OWNER");
+        require(msg.sender == owner, "xMPL:NOT_OWNER");
         _;
     }
 
@@ -31,54 +31,54 @@ contract xMPL is IXMPL, RevenueDistributionToken {
     /********************************/
 
     function cancelMigration() external override onlyOwner {
-        require(migrationScheduled != 0, "XMPL:CM:NOT_SCHEDULED");
+        require(migrationScheduled != 0, "xMPL:CM:NOT_SCHEDULED");
 
         _cleanupMigration();
 
         emit MigrationCancelled();
     }
 
-    function performMigration(address migrator_, address newUnderlying_) external override onlyOwner {
+    function performMigration(address migrator_, address newAsset_) external override onlyOwner {
         uint256 migrationScheduled_ = migrationScheduled;
 
-        require(migrationScheduled_ != 0,                                   "XMPL:PM:NOT_SCHEDULED");
-        require(block.timestamp >= migrationScheduled_ + MINIMUM_DELAY,     "XMPL:PM:TOO_EARLY");
-        require(_calculateHash(migrator_, newUnderlying_) == migrationHash, "XMPL:PM:INVALID_ARGS");
+        require(migrationScheduled_ != 0,                               "xMPL:PM:NOT_SCHEDULED");
+        require(block.timestamp >= migrationScheduled_ + MINIMUM_DELAY, "xMPL:PM:TOO_EARLY");
+        require(_calculateHash(migrator_, newAsset_) == migrationHash,  "xMPL:PM:INVALID_ARGS");
 
-        ERC20    currentUnderlying = ERC20(underlying);
-        ERC20    newUnderlying     = ERC20(newUnderlying_);
-        Migrator migrator          = Migrator(migrator_);
+        ERC20Permit currentAsset = ERC20Permit(asset);
+        ERC20Permit newAsset     = ERC20Permit(newAsset_);
+        Migrator    migrator     = Migrator(migrator_);
 
-        require(migrator.newToken() == newUnderlying_, "XMPL:PM:WRONG_TOKEN");
+        require(migrator.newToken() == newAsset_, "xMPL:PM:WRONG_TOKEN");
 
-        uint256 amountToMigrate        = currentUnderlying.balanceOf(address(this));
-        uint256 balanceBeforeMigration = newUnderlying.balanceOf(address(this));
+        uint256 amountToMigrate        = currentAsset.balanceOf(address(this));
+        uint256 balanceBeforeMigration = newAsset.balanceOf(address(this));
 
-        currentUnderlying.approve(migrator_, amountToMigrate);
+        currentAsset.approve(migrator_, amountToMigrate);
         migrator.migrate(amountToMigrate);
 
-        require(newUnderlying.balanceOf(address(this)) - balanceBeforeMigration == amountToMigrate, "XMPL:PM:WRONG_AMOUNT");
+        require(newAsset.balanceOf(address(this)) - balanceBeforeMigration == amountToMigrate, "xMPL:PM:WRONG_AMOUNT");
 
-        underlying = newUnderlying_;
+        asset = newAsset_;
 
         _cleanupMigration();
 
         emit MigrationPerformed(amountToMigrate);
     }
 
-    function scheduleMigration(address migrator_, address newUnderlying_) external override onlyOwner {
+    function scheduleMigration(address migrator_, address newAsset_) external override onlyOwner {
         migrationScheduled = block.timestamp;
-        migrationHash      = _calculateHash(migrator_, newUnderlying_);
+        migrationHash      = _calculateHash(migrator_, newAsset_);
 
-        emit MigrationScheduled(underlying, newUnderlying_, migrator_);
+        emit MigrationScheduled(asset, newAsset_, migrator_);
     }
 
     /*************************/
     /*** Utility Functions ***/
     /*************************/
 
-    function _calculateHash(address migrator_, address underlying_) internal pure returns (bytes32 hash_) {
-        hash_ = keccak256(abi.encode(migrator_, underlying_));
+    function _calculateHash(address migrator_, address asset_) internal pure returns (bytes32 hash_) {
+        hash_ = keccak256(abi.encode(migrator_, asset_));
     }
 
     function _cleanupMigration() internal {

@@ -11,12 +11,12 @@ contract xMPLOwner is Owner {
         IXMPL(xmpl_).cancelMigration();
     }
 
-    function xMPL_performMigration(address xmpl_, address migrator_, address newUnderlying_) external {
-        IXMPL(xmpl_).performMigration(migrator_, newUnderlying_);
+    function xMPL_performMigration(address xmpl_, address migrator_, address newAsset_) external {
+        IXMPL(xmpl_).performMigration(migrator_, newAsset_);
     }
 
-    function xMPL_scheduleMigration(address xmpl_, address migrator_, address newUnderlying_) external {
-        IXMPL(xmpl_).scheduleMigration(migrator_, newUnderlying_);
+    function xMPL_scheduleMigration(address xmpl_, address migrator_, address newAsset_) external {
+        IXMPL(xmpl_).scheduleMigration(migrator_, newAsset_);
     }
 
 }

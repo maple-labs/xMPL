@@ -21,9 +21,9 @@ interface IXMPL is IRevenueDistributionToken {
 
     function cancelMigration() external;
 
-    function performMigration(address migrator_, address newUnderlying_) external;
+    function performMigration(address migrator_, address newAsset_) external;
 
-    function scheduleMigration(address migrator_, address newUnderlying_) external;
+    function scheduleMigration(address migrator_, address newAsset) external;
 
     /**********************/
     /*** View Functions ***/
