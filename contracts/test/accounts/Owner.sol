@@ -3,7 +3,7 @@ pragma solidity 0.8.7;
 
 import { Owner } from "../../../modules/revenue-distribution-token/contracts/test/accounts/Owner.sol";
 
-import { IXMPL } from "../../interfaces/IXMPL.sol";
+import { IxMPL } from "../../interfaces/IxMPL.sol";
 
 contract xMPLOwner is Owner {
 

@@ -3,7 +3,7 @@ pragma solidity 0.8.7;
 
 import { IRevenueDistributionToken } from "../../modules/revenue-distribution-token/contracts/interfaces/IRevenueDistributionToken.sol";
 
-interface IXMPL is IRevenueDistributionToken {
+interface IxMPL is IRevenueDistributionToken {
 
     /**************/
     /*** Events ***/
@@ -21,6 +21,11 @@ interface IXMPL is IRevenueDistributionToken {
 
     function cancelMigration() external;
 
+    /**
+    *  @dev   Perform a migration of the asset.
+    *  @param migrator_ The address of the migrator contract.
+    *  @param newAsset_ The address of the new asset token.
+    */
     function performMigration(address migrator_, address newAsset_) external;
 
     function scheduleMigration(address migrator_, address newAsset) external;
