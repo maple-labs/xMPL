@@ -5,10 +5,34 @@ import { IRevenueDistributionToken } from "../../modules/revenue-distribution-to
 
 interface IXMPL is IRevenueDistributionToken {
 
+    /**************/
+    /*** Events ***/
+    /**************/
+
+    event MigrationCancelled();
+
+    event MigrationPerformed(uint256 amount);
+
+    event MigrationScheduled(address from, address to, address migrator);
+
     /********************************/
     /*** Administrative Functions ***/
     /********************************/
 
-    function migrateAll(address migrator_, address newToken_) external;
+    function cancelMigration() external;
+
+    function performMigration(address migrator_, address newAsset_) external;
+
+    function scheduleMigration(address migrator_, address newAsset) external;
+
+    /**********************/
+    /*** View Functions ***/
+    /**********************/
+
+    function migrationHash() external view returns (bytes32 migrationHash_);
+
+    function migrationScheduled() external view returns (uint256 migrationScheduled_);
+
+    function minimumDelay() external pure returns (uint256 minimumDelay_);
 
 }
