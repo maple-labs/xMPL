@@ -11,7 +11,21 @@ This repo contains a set of contracts to facilitate on-chain distribution of ves
 xMPL inherits the core functionality from Maple's [Revenue Distribution Token](https://github.com/maple-labs/revenue-distribution-token), which allows users to lock assets to earn rewards distributions based on a vesting schedule, with the increased functionality to perform a one time asset migration for the underlying token. This migration will interact with the contracts defined in [mpl-migration](https://github.com/maple-labs/mpl-migration).
 
 
-![Diagram](https://user-images.githubusercontent.com/16119563/156415169-75b2d7b4-8466-447c-b9ad-f9b94d3f6546.jpeg)
+![Migration Diagrams](https://user-images.githubusercontent.com/16119563/156451625-aaf01596-4cb2-4eff-8e0f-380897592afa.svg)
+
+### Standalone Migration
+1. A User deposits MPL tokens in the migrator. 
+
+2. The Migrator takes the MPL amount and returns the exact same amount of MPLV2.
+
+### One time xMPL migration
+1. Governor address calls "Migrate"  with a timelock, which is a mechanism that adds a time delay between the intent of an action and it's actual execution, to allow instered parties to take action with they disagree. In this case, the Governor signals that a migration will happen in two weeks time, and olny after this time the excution is cleared to happen.
+
+2. The xMPL contract deposit all of it's current balance of MPL to the migrator contract
+
+3. The Migrator takes the MPL amount and returns the exact same amount of MPLV2.
+
+4. The xMPL contract change its asset to track the new MPLV2 token, instead of the old MPL.
 
 ## Testing and Development
 #### Setup
