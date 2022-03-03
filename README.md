@@ -4,7 +4,22 @@
 
 **DISCLAIMER: This code has NOT been externally audited and is actively being developed. Please do not use in production without taking the appropriate steps to ensure maximum security.**
 
-This repo contains a set of contracts to facilitate on-chain distribution of vesting earnings on an aggregated schedule. This allows for multiple deposits to be made to the same contract on a recurring basis with custom vesting parameters.
+This repo contains a set of contracts to facilitate on-chain distribution of protocol revenues denominated in MPL tokens. MPL distributions are made using RevenueDistributionToken (RDT) vesting schedule functionaltiy. This allows for multiple deposits to be made to the same contract on a recurring basis with custom vesting parameters.
+
+## Capabilities
+
+xMPL inherits the core functionality from Maple's [Revenue Distribution Token](https://github.com/maple-labs/revenue-distribution-token), which allows users to lock assets to earn rewards distributions based on a vesting schedule, with the increased functionality to perform a one time asset migration for the underlying token. This migration will interact with the contracts defined in [mpl-migration](https://github.com/maple-labs/mpl-migration).
+
+![One Time xMPL Migration Diagram](https://user-images.githubusercontent.com/44272939/156459811-1a4b623c-932a-4ac4-b9e7-147ccfa1c6ca.png)
+
+### One-Time xMPL Migration
+1. Governor address calls `performMigration`. This is only possible after calling `scheduleMigration` and waiting the minimum delay period, 10 days. This timelock mechanism is put in place to ensure that users have the opportunity to exit the contract if they do not agree with the migration contract that is being used (if it is malicious for example).
+
+2. The xMPL contract deposits its entire balance of MPL to the migrator contract.
+
+3. The migrator contract takes the MPL amount and returns the exact same amount of MPLv2.
+
+4. The xMPL contract changes the underlying asset to track the new MPLv2 token.
 
 ## Testing and Development
 #### Setup

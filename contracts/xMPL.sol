@@ -5,9 +5,9 @@ import { ERC20Permit, RevenueDistributionToken } from "../modules/revenue-distri
 
 import { Migrator } from "../modules/mpl-migration/contracts/Migrator.sol";
 
-import { IXMPL } from "./interfaces/IXMPL.sol";
+import { IxMPL } from "./interfaces/IxMPL.sol";
 
-contract xMPL is IXMPL, RevenueDistributionToken {
+contract xMPL is IxMPL, RevenueDistributionToken {
 
     uint256 public constant MINIMUM_DELAY = 10 days;
 
