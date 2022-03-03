@@ -54,7 +54,7 @@ contract xMPL is IxMPL, RevenueDistributionToken {
         uint256 amountToMigrate        = currentAsset.balanceOf(address(this));
         uint256 balanceBeforeMigration = newAsset.balanceOf(address(this));
 
-        currentAsset.approve(migrator_, amountToMigrate);
+        require(currentAsset.approve(migrator_, amountToMigrate), "xMPL:PM:APPROVAL_FAILED");
         migrator.migrate(amountToMigrate);
 
         require(newAsset.balanceOf(address(this)) - balanceBeforeMigration == amountToMigrate, "xMPL:PM:WRONG_AMOUNT");
