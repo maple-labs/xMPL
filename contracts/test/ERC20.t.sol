@@ -15,7 +15,7 @@ contract xMPL_ERC20Test is ERC20Test {
 
     function setUp() override public {
         address asset = address(new MockERC20("MockToken", "MT", 18));
-        token = MockERC20(address(new MockERC20_xMPL("Revenue Distribution Token", "xMPL", address(this), asset, 1e30)));
+        token = MockERC20(address(new MockERC20_xMPL("Token", "TKN", address(this), asset, 1e30)));
     }
 
 }
@@ -25,11 +25,11 @@ contract xMPL_ERC20PermitTest is ERC20PermitTest {
     function setUp() override public {
         super.setUp();
         address asset = address(new MockERC20("MockToken", "MT", 18));
-        token = ERC20Permit(address(new xMPL("ERC20Permit", "ERC20Permit", address(this), asset, 1e30)));
+        token = ERC20Permit(address(new xMPL("Token", "TKN", address(this), asset, 1e30)));
     }
 
     function test_domainSeparator() external override {
-        assertEq(token.DOMAIN_SEPARATOR(), 0x8ea77afa92184f25cca951da8c2ffc09e16cebfe25b2e826e87a0844991706a9);
+        assertEq(token.DOMAIN_SEPARATOR(), 0xa0948b5dcf9f99364e925fbc7ed09b4fa9c2ca703920db5c3c2453442cc5dd0d);
     }
 
 }
