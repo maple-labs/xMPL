@@ -5,7 +5,7 @@ import { RevenueDistributionToken as RDT } from "../../modules/revenue-distribut
 
 import {
     AuthTest,
-    DepositTest,
+    DepositAndMintTest,
     DepositAndMintWithPermitTest,
     ExitTest,
     RevenueStreamingTest
@@ -22,7 +22,7 @@ contract xMPL_RDT_AuthTest is AuthTest {
 
 }
 
-contract xMPL_RDT_DepositTest is DepositTest {
+contract xMPL_RDT_DepositAndMintTest is DepositAndMintTest {
 
     function setUp() override public {
         super.setUp();
