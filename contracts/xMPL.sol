@@ -9,10 +9,12 @@ import { IxMPL } from "./interfaces/IxMPL.sol";
 
 contract xMPL is IxMPL, RevenueDistributionToken {
 
-    uint256 public constant MINIMUM_DELAY = 10 days;
+    uint256 public constant override MINIMUM_MIGRATION_DELAY = 10 days;
 
-    bytes32 public override migrationHash;
-    uint256 public override migrationScheduled;
+    address public override scheduledMigrator;
+    address public override scheduledNewAsset;
+
+    uint256 public override scheduledMigrationTimestamp;
 
     constructor(string memory name_, string memory symbol_, address owner_, address asset_, uint256 precision_)
         RevenueDistributionToken(name_, symbol_, owner_, asset_, precision_) { }
@@ -31,66 +33,57 @@ contract xMPL is IxMPL, RevenueDistributionToken {
     /********************************/
 
     function cancelMigration() external override onlyOwner {
-        require(migrationScheduled != 0, "xMPL:CM:NOT_SCHEDULED");
+        require(scheduledMigrationTimestamp != 0, "xMPL:CM:NOT_SCHEDULED");
 
         _cleanupMigration();
 
         emit MigrationCancelled();
     }
 
-    function performMigration(address migrator_, address newAsset_) external override onlyOwner {
-        uint256 migrationScheduled_ = migrationScheduled;
+    function performMigration() external override onlyOwner {
+        uint256 migrationTimestamp = scheduledMigrationTimestamp;
+        address migrator           = scheduledMigrator;
+        address oldAsset           = asset;
+        address newAsset           = scheduledNewAsset;
 
-        require(migrationScheduled_ != 0,                               "xMPL:PM:NOT_SCHEDULED");
-        require(block.timestamp >= migrationScheduled_ + MINIMUM_DELAY, "xMPL:PM:TOO_EARLY");
-        require(_calculateHash(migrator_, newAsset_) == migrationHash,  "xMPL:PM:INVALID_ARGS");
+        require(migrationTimestamp != 0,               "xMPL:PM:NOT_SCHEDULED");
+        require(block.timestamp >= migrationTimestamp, "xMPL:PM:TOO_EARLY");
 
-        ERC20Permit currentAsset = ERC20Permit(asset);
-        ERC20Permit newAsset     = ERC20Permit(newAsset_);
-        Migrator    migrator     = Migrator(migrator_);
+        uint256 oldAssetBalanceBeforeMigration = ERC20Permit(oldAsset).balanceOf(address(this));
+        uint256 newAssetBalanceBeforeMigration = ERC20Permit(newAsset).balanceOf(address(this));
 
-        require(migrator.newToken() == newAsset_, "xMPL:PM:WRONG_TOKEN");
+        require(ERC20Permit(oldAsset).approve(migrator, oldAssetBalanceBeforeMigration), "xMPL:PM:APPROVAL_FAILED");
 
-        uint256 amountToMigrate        = currentAsset.balanceOf(address(this));
-        uint256 balanceBeforeMigration = newAsset.balanceOf(address(this));
+        Migrator(migrator).migrate(oldAssetBalanceBeforeMigration);
 
-        asset = newAsset_;
+        require(ERC20Permit(newAsset).balanceOf(address(this)) - newAssetBalanceBeforeMigration == oldAssetBalanceBeforeMigration, "xMPL:PM:WRONG_AMOUNT");
+
+        emit MigrationPerformed(oldAsset, newAsset, oldAssetBalanceBeforeMigration);
+
+        asset = newAsset;
 
         _cleanupMigration();
-
-        require(currentAsset.approve(migrator_, amountToMigrate), "xMPL:PM:APPROVAL_FAILED");
-        migrator.migrate(amountToMigrate);
-
-        require(newAsset.balanceOf(address(this)) - balanceBeforeMigration == amountToMigrate, "xMPL:PM:WRONG_AMOUNT");
-
-        emit MigrationPerformed(amountToMigrate);
     }
 
     function scheduleMigration(address migrator_, address newAsset_) external override onlyOwner {
-        migrationScheduled = block.timestamp;
-        migrationHash      = _calculateHash(migrator_, newAsset_);
+        require(migrator_ != address(0), "xMPL:SM:INVALID_MIGRATOR");
+        require(newAsset_ != address(0), "xMPL:SM:INVALID_NEW_ASSET");
 
-        emit MigrationScheduled(asset, newAsset_, migrator_);
+        scheduledMigrationTimestamp = block.timestamp + MINIMUM_MIGRATION_DELAY;
+        scheduledMigrator           = migrator_;
+        scheduledNewAsset           = newAsset_;
+
+        emit MigrationScheduled(asset, newAsset_, migrator_, scheduledMigrationTimestamp);
     }
 
     /*************************/
     /*** Utility Functions ***/
     /*************************/
 
-    function _calculateHash(address migrator_, address asset_) internal pure returns (bytes32 hash_) {
-        hash_ = keccak256(abi.encode(migrator_, asset_));
-    }
-
     function _cleanupMigration() internal {
-        delete migrationScheduled;
-        delete migrationHash;
+        delete scheduledMigrationTimestamp;
+        delete scheduledMigrator;
+        delete scheduledNewAsset;
     }
 
-    /**********************/
-    /*** View Functions ***/
-    /**********************/
-
-    function minimumDelay() external pure override returns (uint256 minimumDelay_) {
-        return MINIMUM_DELAY;
-    }
 }

@@ -16,17 +16,20 @@ interface IxMPL is IRevenueDistributionToken {
 
     /**
     *  @dev   Notifies that a scheduled migration was executed.
-    *  @param amount the amount of tokens migrated.
+    *  @param fromAsset_ The address of the old asset.
+    *  @param toAsset_   The address of new asset migrated to.
+    *  @param amount_    The amount of tokens migrated.
     */
-    event MigrationPerformed(uint256 amount);
+    event MigrationPerformed(address indexed fromAsset_, address indexed toAsset_, uint256 amount_);
 
     /**
     *  @dev   Notifies that migration was scheduled.
-    *  @param from     current asset address.
-    *  @param to       address of the asset to be migrated to.
-    *  @param migrator address of the migrator contract.
+    *  @param fromAsset_     The current asset address.
+    *  @param toAsset_       The address of the asset to be migrated to.
+    *  @param migrator_      The address of the migrator contract.
+    *  @param migrationTime_ The earliest time the migration is scheduled for.
     */
-    event MigrationScheduled(address from, address to, address migrator);
+    event MigrationScheduled(address indexed fromAsset_, address indexed toAsset_, address indexed migrator_, uint256 migrationTime_);
 
     /********************************/
     /*** Administrative Functions ***/
@@ -38,11 +41,9 @@ interface IxMPL is IRevenueDistributionToken {
     function cancelMigration() external;
 
     /**
-    *  @dev   Perform a migration of the asset.
-    *  @param migrator_ The address of the migrator contract.
-    *  @param newAsset_ The address of the new asset token.
+    *  @dev Perform a migration of the asset.
     */
-    function performMigration(address migrator_, address newAsset_) external;
+    function performMigration() external;
 
     /**
     *  @dev   Schedule a migration to be executed after a delay.
@@ -56,21 +57,27 @@ interface IxMPL is IRevenueDistributionToken {
     /**********************/
 
     /**
-    *  @dev    Get the migration has of a scheduled migration.
-    *  @return migrationHash_ The hash of the migration parameters.
+    *  @dev    Get the minimum delay that a scheduled transaction needs in order to be executed.
+    *  @return minimumMigrationDelay_ The delay in seconds.
     */
-    function migrationHash() external view returns (bytes32 migrationHash_);
+    function MINIMUM_MIGRATION_DELAY() external pure returns (uint256 minimumMigrationDelay_);
 
     /**
-    *  @dev    Get the timestamp that a migration was scheduled.
-    *  @return migrationScheduled_ The timestamp of the migration.
+    *  @dev    The address of the migrator contract to be used during the scheduled migration.
+    *  @return scheduledMigrator_ The address of the migrator.
     */
-    function migrationScheduled() external view returns (uint256 migrationScheduled_);
+    function scheduledMigrator() external view returns (address scheduledMigrator_);
 
     /**
-    *  @dev    Get the minimum delay that a schedule transactions needs to be executed.
-    *  @return minimumDelay_ The delay in seconds.
+    *  @dev    The address of the new asset token to be migrated to during the scheduled migration.
+    *  @return scheduledNewAsset_ The address of the new asset token.
     */
-    function minimumDelay() external pure returns (uint256 minimumDelay_);
+    function scheduledNewAsset() external view returns (address scheduledNewAsset_);
+
+    /**
+    *  @dev    Get the timestamp that a migration is scheduled for.
+    *  @return scheduledMigrationTimestamp_ The timestamp of the migration.
+    */
+    function scheduledMigrationTimestamp() external view returns (uint256 scheduledMigrationTimestamp_);
 
 }

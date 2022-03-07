@@ -4,11 +4,9 @@ pragma solidity 0.8.7;
 import { CompromisedMigrator } from "./mocks/Mocks.sol";
 
 import { TestUtils } from "../../modules/contract-test-utils/contracts/test.sol";
-
 import { Migrator }  from "../../modules/mpl-migration/contracts/Migrator.sol";
 import { MockERC20 } from "../../modules/mpl-migration/modules/erc20/contracts/test/mocks/MockERC20.sol";
-
-import { Staker } from "../../modules/revenue-distribution-token/contracts/test/accounts/Staker.sol";
+import { Staker }    from "../../modules/revenue-distribution-token/contracts/test/accounts/Staker.sol";
 
 import { xMPL } from "../xMPL.sol";
 
@@ -70,79 +68,56 @@ contract xMPLTest is TestUtils {
     }
 
     function test_cancelMigration_success() external {
-        assertEq(xmpl.migrationHash(),      0);
-        assertEq(xmpl.migrationScheduled(), 0);
+        assertEq(xmpl.scheduledMigrator(),           address(0));
+        assertEq(xmpl.scheduledNewAsset(),           address(0));
+        assertEq(xmpl.scheduledMigrationTimestamp(), 0);
 
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
 
-        assertEq(xmpl.migrationHash(),      keccak256(abi.encode(address(migrator), address(newAsset))));
-        assertEq(xmpl.migrationScheduled(), START);
+        assertEq(xmpl.scheduledMigrator(),           address(migrator));
+        assertEq(xmpl.scheduledNewAsset(),           address(newAsset));
+        assertEq(xmpl.scheduledMigrationTimestamp(), START + xmpl.MINIMUM_MIGRATION_DELAY());
 
         owner.xMPL_cancelMigration(address(xmpl));
 
-        assertEq(xmpl.migrationHash(),      0);
-        assertEq(xmpl.migrationScheduled(), 0);
+        assertEq(xmpl.scheduledMigrator(),           address(0));
+        assertEq(xmpl.scheduledNewAsset(),           address(0));
+        assertEq(xmpl.scheduledMigrationTimestamp(), 0);
     }
 
     function test_performMigration_notOwner() external {
-        vm.expectRevert("xMPL:NOT_OWNER");
-        notOwner.xMPL_performMigration(address(xmpl), address(migrator), address(newAsset));
-
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
 
-        vm.warp(START + xmpl.minimumDelay());
+        vm.warp(START + xmpl.MINIMUM_MIGRATION_DELAY());
 
-        owner.xMPL_performMigration(address(xmpl), address(migrator), address(newAsset));
+        vm.expectRevert("xMPL:NOT_OWNER");
+        notOwner.xMPL_performMigration(address(xmpl));
+
+        owner.xMPL_performMigration(address(xmpl));
     }
 
     function test_performMigration_notScheduled() external {
         vm.expectRevert("xMPL:PM:NOT_SCHEDULED");
-        owner.xMPL_performMigration(address(xmpl), address(migrator), address(newAsset));
+        owner.xMPL_performMigration(address(xmpl));
 
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
 
-        vm.warp(START + xmpl.minimumDelay());
+        vm.warp(START + xmpl.MINIMUM_MIGRATION_DELAY());
 
-        owner.xMPL_performMigration(address(xmpl), address(migrator), address(newAsset));
+        owner.xMPL_performMigration(address(xmpl));
     }
 
     function test_performMigration_tooEarly() external {
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
 
-        vm.warp(START + xmpl.minimumDelay() - 1);
+        vm.warp(START + xmpl.MINIMUM_MIGRATION_DELAY() - 1);
 
         vm.expectRevert("xMPL:PM:TOO_EARLY");
-        owner.xMPL_performMigration(address(xmpl), address(migrator), address(newAsset));
+        owner.xMPL_performMigration(address(xmpl));
 
-        vm.warp(START + xmpl.minimumDelay());
+        vm.warp(START + xmpl.MINIMUM_MIGRATION_DELAY());
 
-        owner.xMPL_performMigration(address(xmpl), address(migrator), address(newAsset));
-    }
-
-    function test_performMigration_invalidArguments() external {
-        owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
-
-        vm.warp(START + xmpl.minimumDelay());
-
-        vm.expectRevert("xMPL:PM:INVALID_ARGS");
-        owner.xMPL_performMigration(address(xmpl), address(migrator), address(oldAsset));
-
-        owner.xMPL_performMigration(address(xmpl), address(migrator), address(newAsset));
-    }
-
-    function test_performMigration_wrongToken() external {
-        owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(oldAsset));
-
-        vm.warp(START + xmpl.minimumDelay());
-
-        vm.expectRevert("xMPL:PM:WRONG_TOKEN");
-        owner.xMPL_performMigration(address(xmpl), address(migrator), address(oldAsset));
-
-        owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
-
-        vm.warp(START + 2 * xmpl.minimumDelay());
-
-        owner.xMPL_performMigration(address(xmpl), address(migrator), address(newAsset));
+        owner.xMPL_performMigration(address(xmpl));
     }
 
     function test_performMigration_wrongAmount() external {
@@ -150,16 +125,16 @@ contract xMPLTest is TestUtils {
 
         owner.xMPL_scheduleMigration(address(xmpl), address(badMigrator), address(newAsset));
 
-        vm.warp(START + xmpl.minimumDelay());
+        vm.warp(START + xmpl.MINIMUM_MIGRATION_DELAY());
 
         vm.expectRevert("xMPL:PM:WRONG_AMOUNT");
-        owner.xMPL_performMigration(address(xmpl), address(badMigrator), address(newAsset));
+        owner.xMPL_performMigration(address(xmpl));
 
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
 
-        vm.warp(START + 2 * xmpl.minimumDelay());
+        vm.warp(START + 2 * xmpl.MINIMUM_MIGRATION_DELAY());
 
-        owner.xMPL_performMigration(address(xmpl), address(migrator), address(newAsset));
+        owner.xMPL_performMigration(address(xmpl));
     }
 
     function test_performMigration_migrationPostVesting(uint256 amount_, uint vestingPeriod_) external {
@@ -167,14 +142,14 @@ contract xMPLTest is TestUtils {
         vestingPeriod_ = constrictToRange(vestingPeriod_, 10 seconds, 100_000 days);
 
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
-        vm.warp(START + xmpl.minimumDelay());
+        vm.warp(START + xmpl.MINIMUM_MIGRATION_DELAY());
 
         oldAsset.mint(address(xmpl), amount_);
         owner.rdToken_updateVestingSchedule(address(xmpl), vestingPeriod_);
 
-        vm.warp(START + xmpl.minimumDelay() + xmpl.vestingPeriodFinish());
+        vm.warp(START + xmpl.MINIMUM_MIGRATION_DELAY() + xmpl.vestingPeriodFinish());
 
-        uint256 expectedRate     = amount_ * 1e30 / vestingPeriod_;
+        uint256 expectedRate        = amount_ * 1e30 / vestingPeriod_;
         uint256 expectedTotalAssets = DEPOSITED + expectedRate * vestingPeriod_ / 1e30;
 
         assertEq(oldAsset.balanceOf(address(xmpl)), amount_ + DEPOSITED);
@@ -184,13 +159,14 @@ contract xMPLTest is TestUtils {
         assertEq(xmpl.totalAssets(),                          expectedTotalAssets);
         assertEq(xmpl.convertToAssets(sampleSharesToConvert), sampleSharesToConvert * expectedTotalAssets / DEPOSITED);
         assertEq(xmpl.convertToShares(sampleAssetsToConvert), sampleAssetsToConvert * DEPOSITED / expectedTotalAssets);
-        assertEq(xmpl.migrationHash(),                        keccak256(abi.encode(address(migrator), address(newAsset))));
-        assertEq(xmpl.migrationScheduled(),                   START);
+        assertEq(xmpl.scheduledMigrator(),                    address(migrator));
+        assertEq(xmpl.scheduledNewAsset(),                    address(newAsset));
+        assertEq(xmpl.scheduledMigrationTimestamp(),          START + xmpl.MINIMUM_MIGRATION_DELAY());
 
         assertWithinDiff(xmpl.balanceOfAssets(address(staker)), DEPOSITED + amount_, 1);
         assertWithinDiff(xmpl.totalAssets(),                    DEPOSITED + amount_, 1);
 
-        owner.xMPL_performMigration(address(xmpl), address(migrator), address(newAsset));
+        owner.xMPL_performMigration(address(xmpl));
 
         assertEq(oldAsset.balanceOf(address(xmpl)), 0);
         assertEq(newAsset.balanceOf(address(xmpl)), amount_ + DEPOSITED);
@@ -199,8 +175,9 @@ contract xMPLTest is TestUtils {
         assertEq(xmpl.totalAssets(),                          expectedTotalAssets);
         assertEq(xmpl.convertToAssets(sampleSharesToConvert), sampleSharesToConvert * expectedTotalAssets / DEPOSITED);
         assertEq(xmpl.convertToShares(sampleAssetsToConvert), sampleAssetsToConvert * DEPOSITED / expectedTotalAssets);
-        assertEq(xmpl.migrationHash(),                        0);
-        assertEq(xmpl.migrationScheduled(),                   0);
+        assertEq(xmpl.scheduledMigrator(),                    address(0));
+        assertEq(xmpl.scheduledNewAsset(),                    address(0));
+        assertEq(xmpl.scheduledMigrationTimestamp(),          0);
 
         assertWithinDiff(xmpl.balanceOfAssets(address(staker)), DEPOSITED + amount_, 1);
         assertWithinDiff(xmpl.totalAssets(),                    DEPOSITED + amount_, 1);
@@ -212,14 +189,14 @@ contract xMPLTest is TestUtils {
         warpAmount_    = constrictToRange(warpAmount_,    1,          vestingPeriod_);
 
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
-        vm.warp(START + xmpl.minimumDelay());
+        vm.warp(START + xmpl.MINIMUM_MIGRATION_DELAY());
 
         oldAsset.mint(address(xmpl), amount_);
         owner.rdToken_updateVestingSchedule(address(xmpl), vestingPeriod_);
 
-        vm.warp(START + xmpl.minimumDelay() + warpAmount_);
+        vm.warp(START + xmpl.MINIMUM_MIGRATION_DELAY() + warpAmount_);
 
-        uint256 expectedRate     = amount_ * 1e30 / vestingPeriod_;
+        uint256 expectedRate        = amount_ * 1e30 / vestingPeriod_;
         uint256 expectedTotalAssets = DEPOSITED + expectedRate * warpAmount_ / 1e30;
 
         assertEq(oldAsset.balanceOf(address(xmpl)), amount_ + DEPOSITED);
@@ -229,12 +206,13 @@ contract xMPLTest is TestUtils {
         assertEq(xmpl.totalAssets(),                          expectedTotalAssets);
         assertEq(xmpl.convertToAssets(sampleSharesToConvert), sampleSharesToConvert * expectedTotalAssets / DEPOSITED);
         assertEq(xmpl.convertToShares(sampleAssetsToConvert), sampleAssetsToConvert * DEPOSITED / expectedTotalAssets);
-        assertEq(xmpl.migrationHash(),                        keccak256(abi.encode(address(migrator), address(newAsset))));
-        assertEq(xmpl.migrationScheduled(),                   START);
+        assertEq(xmpl.scheduledMigrator(),                    address(migrator));
+        assertEq(xmpl.scheduledNewAsset(),                    address(newAsset));
+        assertEq(xmpl.scheduledMigrationTimestamp(),          START + xmpl.MINIMUM_MIGRATION_DELAY());
 
         assertWithinDiff(xmpl.balanceOfAssets(address(staker)), expectedTotalAssets, 1);
 
-        owner.xMPL_performMigration(address(xmpl), address(migrator), address(newAsset));
+        owner.xMPL_performMigration(address(xmpl));
 
         assertEq(oldAsset.balanceOf(address(xmpl)), 0);
         assertEq(newAsset.balanceOf(address(xmpl)), amount_ + DEPOSITED);
@@ -243,8 +221,9 @@ contract xMPLTest is TestUtils {
         assertEq(xmpl.totalAssets(),                          expectedTotalAssets);
         assertEq(xmpl.convertToAssets(sampleSharesToConvert), sampleSharesToConvert * expectedTotalAssets / DEPOSITED);
         assertEq(xmpl.convertToShares(sampleAssetsToConvert), sampleAssetsToConvert * DEPOSITED / expectedTotalAssets);
-        assertEq(xmpl.migrationHash(),                        0);
-        assertEq(xmpl.migrationScheduled(),                   0);
+        assertEq(xmpl.scheduledMigrator(),                    address(0));
+        assertEq(xmpl.scheduledNewAsset(),                    address(0));
+        assertEq(xmpl.scheduledMigrationTimestamp(),          0);
 
         assertWithinDiff(xmpl.balanceOfAssets(address(staker)), expectedTotalAssets, 1);
     }
@@ -256,30 +235,45 @@ contract xMPLTest is TestUtils {
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
     }
 
+    function test_scheduleMigration_zeroMigrator() external {
+        vm.expectRevert("xMPL:SM:INVALID_MIGRATOR");
+        owner.xMPL_scheduleMigration(address(xmpl), address(0), address(newAsset));
+    }
+
+    function test_scheduleMigration_zeroNewAsset() external {
+        vm.expectRevert("xMPL:SM:INVALID_NEW_ASSET");
+        owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(0));
+    }
+
     function test_scheduleMigration_once() external {
-        assertEq(xmpl.migrationHash(),      0);
-        assertEq(xmpl.migrationScheduled(), 0);
+        assertEq(xmpl.scheduledMigrator(),           address(0));
+        assertEq(xmpl.scheduledNewAsset(),           address(0));
+        assertEq(xmpl.scheduledMigrationTimestamp(), 0);
 
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
 
-        assertEq(xmpl.migrationHash(),      keccak256(abi.encode(address(migrator), address(newAsset))));
-        assertEq(xmpl.migrationScheduled(), START);
+        assertEq(xmpl.scheduledMigrator(),           address(migrator));
+        assertEq(xmpl.scheduledNewAsset(),           address(newAsset));
+        assertEq(xmpl.scheduledMigrationTimestamp(), START + xmpl.MINIMUM_MIGRATION_DELAY());
     }
 
     function test_scheduleMigration_withCorrection() external {
-        assertEq(xmpl.migrationHash(),      0);
-        assertEq(xmpl.migrationScheduled(), 0);
+        assertEq(xmpl.scheduledMigrator(),           address(0));
+        assertEq(xmpl.scheduledNewAsset(),           address(0));
+        assertEq(xmpl.scheduledMigrationTimestamp(), 0);
 
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(oldAsset));
 
-        assertEq(xmpl.migrationHash(),      keccak256(abi.encode(address(migrator), address(oldAsset))));
-        assertEq(xmpl.migrationScheduled(), START);
+        assertEq(xmpl.scheduledMigrator(),           address(migrator));
+        assertEq(xmpl.scheduledNewAsset(),           address(oldAsset));
+        assertEq(xmpl.scheduledMigrationTimestamp(), START + xmpl.MINIMUM_MIGRATION_DELAY());
 
         vm.warp(START + 1);
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
 
-        assertEq(xmpl.migrationHash(),      keccak256(abi.encode(address(migrator), address(newAsset))));
-        assertEq(xmpl.migrationScheduled(), START + 1);
+        assertEq(xmpl.scheduledMigrator(),           address(migrator));
+        assertEq(xmpl.scheduledNewAsset(),           address(newAsset));
+        assertEq(xmpl.scheduledMigrationTimestamp(), START + 1 + xmpl.MINIMUM_MIGRATION_DELAY());
     }
 
 }
