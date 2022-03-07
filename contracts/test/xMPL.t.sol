@@ -86,12 +86,12 @@ contract xMPLTest is TestUtils {
     }
 
     function test_performMigration_notOwner() external {
-        vm.expectRevert("xMPL:NOT_OWNER");
-        notOwner.xMPL_performMigration(address(xmpl));
-
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
 
         vm.warp(START + xmpl.MINIMUM_MIGRATION_DELAY());
+
+        vm.expectRevert("xMPL:NOT_OWNER");
+        notOwner.xMPL_performMigration(address(xmpl));
 
         owner.xMPL_performMigration(address(xmpl));
     }
@@ -149,7 +149,7 @@ contract xMPLTest is TestUtils {
 
         vm.warp(START + xmpl.MINIMUM_MIGRATION_DELAY() + xmpl.vestingPeriodFinish());
 
-        uint256 expectedRate     = amount_ * 1e30 / vestingPeriod_;
+        uint256 expectedRate        = amount_ * 1e30 / vestingPeriod_;
         uint256 expectedTotalAssets = DEPOSITED + expectedRate * vestingPeriod_ / 1e30;
 
         assertEq(oldAsset.balanceOf(address(xmpl)), amount_ + DEPOSITED);
@@ -196,7 +196,7 @@ contract xMPLTest is TestUtils {
 
         vm.warp(START + xmpl.MINIMUM_MIGRATION_DELAY() + warpAmount_);
 
-        uint256 expectedRate     = amount_ * 1e30 / vestingPeriod_;
+        uint256 expectedRate        = amount_ * 1e30 / vestingPeriod_;
         uint256 expectedTotalAssets = DEPOSITED + expectedRate * warpAmount_ / 1e30;
 
         assertEq(oldAsset.balanceOf(address(xmpl)), amount_ + DEPOSITED);
@@ -235,6 +235,16 @@ contract xMPLTest is TestUtils {
         owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(newAsset));
     }
 
+    function test_scheduleMigration_zeroMigrator() external {
+        vm.expectRevert("xMPL:SM:INVALID_MIGRATOR");
+        owner.xMPL_scheduleMigration(address(xmpl), address(0), address(newAsset));
+    }
+
+    function test_scheduleMigration_zeroNewAsset() external {
+        vm.expectRevert("xMPL:SM:INVALID_NEW_ASSET");
+        owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(0));
+    }
+
     function test_scheduleMigration_once() external {
         assertEq(xmpl.scheduledMigrator(),           address(0));
         assertEq(xmpl.scheduledNewAsset(),           address(0));
@@ -264,16 +274,6 @@ contract xMPLTest is TestUtils {
         assertEq(xmpl.scheduledMigrator(),           address(migrator));
         assertEq(xmpl.scheduledNewAsset(),           address(newAsset));
         assertEq(xmpl.scheduledMigrationTimestamp(), START + 1 + xmpl.MINIMUM_MIGRATION_DELAY());
-    }
-
-    function test_scheduleMigration_zeroMigrator() external {
-        vm.expectRevert("xMPL:SM:INVALID_MIGRATOR");
-        owner.xMPL_scheduleMigration(address(xmpl), address(0), address(newAsset));
-    }
-
-    function test_scheduleMigration_zeroNewAsset() external {
-        vm.expectRevert("xMPL:SM:INVALID_NEW_ASSET");
-        owner.xMPL_scheduleMigration(address(xmpl), address(migrator), address(0));
     }
 
 }

@@ -42,9 +42,9 @@ contract xMPL is IxMPL, RevenueDistributionToken {
 
     function performMigration() external override onlyOwner {
         uint256 migrationTimestamp = scheduledMigrationTimestamp;
-        address migrator = scheduledMigrator;
-        address oldAsset = asset;
-        address newAsset = scheduledNewAsset;
+        address migrator           = scheduledMigrator;
+        address oldAsset           = asset;
+        address newAsset           = scheduledNewAsset;
 
         require(migrationTimestamp != 0,               "xMPL:PM:NOT_SCHEDULED");
         require(block.timestamp >= migrationTimestamp, "xMPL:PM:TOO_EARLY");
@@ -53,6 +53,7 @@ contract xMPL is IxMPL, RevenueDistributionToken {
         uint256 newAssetBalanceBeforeMigration = ERC20Permit(newAsset).balanceOf(address(this));
 
         require(ERC20Permit(oldAsset).approve(migrator, oldAssetBalanceBeforeMigration), "xMPL:PM:APPROVAL_FAILED");
+
         Migrator(migrator).migrate(oldAssetBalanceBeforeMigration);
 
         require(ERC20Permit(newAsset).balanceOf(address(this)) - newAssetBalanceBeforeMigration == oldAssetBalanceBeforeMigration, "xMPL:PM:WRONG_AMOUNT");
@@ -69,8 +70,8 @@ contract xMPL is IxMPL, RevenueDistributionToken {
         require(newAsset_ != address(0), "xMPL:SM:INVALID_NEW_ASSET");
 
         scheduledMigrationTimestamp = block.timestamp + MINIMUM_MIGRATION_DELAY;
-        scheduledMigrator = migrator_;
-        scheduledNewAsset = newAsset_;
+        scheduledMigrator           = migrator_;
+        scheduledNewAsset           = newAsset_;
 
         emit MigrationScheduled(asset, newAsset_, migrator_, scheduledMigrationTimestamp);
     }
