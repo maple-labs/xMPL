@@ -2,6 +2,7 @@
 pragma solidity ^0.8.7;
 
 import { TestUtils, InvariantTest }  from "../../modules/contract-test-utils/contracts/test.sol";
+import { Migrator }                  from "../../modules/mpl-migration/contracts/Migrator.sol";
 import { InvariantStakerManager }    from "../../modules/revenue-distribution-token/contracts/test/accounts/Staker.sol";
 import { InvariantERC20User }        from "../../modules/revenue-distribution-token/contracts/test/accounts/ERC20User.sol";
 import { Warper }                    from "../../modules/revenue-distribution-token/contracts/test/accounts/Warper.sol";
@@ -11,8 +12,6 @@ import { RDTInvariants, MutableRDT } from "../../modules/revenue-distribution-to
 import { xMPLInvariantOwner } from "./accounts/Owner.sol";
 
 import { MutableXMPL } from "./mocks/Mocks.sol";
-
-import { Migrator }  from "../../modules/mpl-migration/contracts/Migrator.sol";
 
 contract xMPLInvariants is RDTInvariants {
 
