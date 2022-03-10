@@ -306,7 +306,7 @@ contract xMPLRevenueStreamingTest is RevenueStreamingTest {
 contract FullMigrationTest is TestUtils {
 
     Migrator  migrator;
-    MockERC20 underlying;
+    MockERC20 underlying;     // todo update to use `asset` instead of `underlying`
     MockERC20 newUnderlying;
     xMPL      rdToken;
 
@@ -346,7 +346,7 @@ contract FullMigrationTest is TestUtils {
 
         vm.warp(start + 1 days);
 
-        assertEq(rdToken.totalAssets(),  depositAmount);  // No change
+        assertEq(rdToken.totalAssets(), depositAmount);  // No change
 
         vm.warp(start);  // Warp back after demonstrating totalHoldings is not time-dependent before vesting starts
 
@@ -374,11 +374,11 @@ contract FullMigrationTest is TestUtils {
                 newUnderlying.mint(address(migrator), underlying.balanceOf(address(rdToken)));
 
                 // go back in time to schedule a migration
-                uint now = block.timestamp;
+                uint256 currentTimestamp = block.timestamp;
                 vm.warp(block.timestamp - 10 days - 1);
                 rdToken.scheduleMigration(address(migrator), address(newUnderlying));
 
-                vm.warp(now);
+                vm.warp(currentTimestamp);
                 rdToken.performMigration();
             }
 
@@ -394,8 +394,8 @@ contract FullMigrationTest is TestUtils {
 
         assertWithinDiff(rdToken.balanceOfAssets(address(staker)), expectedFinalTotal, 2);
 
-        assertWithinDiff(rdToken.totalAssets(), expectedFinalTotal,                             1);
-        assertWithinDiff(rdToken.convertToAssets(1e30),  rdToken.totalAssets() * 1e30 / depositAmount, 1);  // Using totalHoldings because of rounding
+        assertWithinDiff(rdToken.totalAssets(),         expectedFinalTotal,                             1);
+        assertWithinDiff(rdToken.convertToAssets(1e30), rdToken.totalAssets() * 1e30 / depositAmount, 1);  // Using totalHoldings because of rounding
 
         assertEq(newUnderlying.balanceOf(address(rdToken)), depositAmount + vestingAmount);
         assertEq(underlying.balanceOf(address(rdToken)),    0);
@@ -410,7 +410,7 @@ contract FullMigrationTest is TestUtils {
 
         assertEq(rdToken.convertToAssets(1e30), 1e30);                    // Exchange rate returns to zero when empty
         assertEq(rdToken.issuanceRate(),        expectedRate);            // TODO: Investigate implications of non-zero issuanceRate here
-        assertEq(rdToken.lastUpdated(),         start + vestingPeriod);  // This makes issuanceRate * time zero
+        assertEq(rdToken.lastUpdated(),         start + vestingPeriod);   // This makes issuanceRate * time zero
         assertEq(rdToken.vestingPeriodFinish(), start + vestingPeriod);
 
         assertWithinDiff(newUnderlying.balanceOf(address(rdToken)), 0, 2);
@@ -420,7 +420,7 @@ contract FullMigrationTest is TestUtils {
         assertWithinDiff(newUnderlying.balanceOf(address(staker)), depositAmount + vestingAmount, 2);
         assertWithinDiff(rdToken.balanceOf(address(staker)),       0,                               1);
 
-        assertEq(underlying.balanceOf(address(staker)),0);
+        assertEq(underlying.balanceOf(address(staker)), 0);
     }
 
     function _depositAndUpdateVesting(uint256 vestingAmount_, uint256 vestingPeriod_) internal {

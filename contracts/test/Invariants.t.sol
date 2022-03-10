@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.7;
 
-import { TestUtils, InvariantTest } from "../../modules/contract-test-utils/contracts/test.sol";
+import { TestUtils, InvariantTest }  from "../../modules/contract-test-utils/contracts/test.sol";
+import { InvariantStakerManager }    from "../../modules/revenue-distribution-token/contracts/test/accounts/Staker.sol";
+import { InvariantERC20User }        from "../../modules/revenue-distribution-token/contracts/test/accounts/ERC20User.sol";
+import { Warper }                    from "../../modules/revenue-distribution-token/contracts/test/accounts/Warper.sol";
+import { MockERC20 }                 from "../../modules/revenue-distribution-token/modules/erc20/contracts/test/mocks/MockERC20.sol";
+import { RDTInvariants, MutableRDT } from "../../modules/revenue-distribution-token/contracts/test/Invariants.t.sol";
 
 import { xMPLInvariantOwner } from "./accounts/Owner.sol";
 
@@ -9,21 +14,12 @@ import { MutableXMPL } from "./mocks/Mocks.sol";
 
 import { Migrator }  from "../../modules/mpl-migration/contracts/Migrator.sol";
 
-import { InvariantStakerManager } from "../../modules/revenue-distribution-token/contracts/test/accounts/Staker.sol";
-import { InvariantERC20User }     from "../../modules/revenue-distribution-token/contracts/test/accounts/ERC20User.sol";
-import { Warper }                 from "../../modules/revenue-distribution-token/contracts/test/accounts/Warper.sol";
-
-import { MockERC20 } from "../../modules/revenue-distribution-token/modules/erc20/contracts/test/mocks/MockERC20.sol";
-
-import { RDTInvariants, MutableRDT } from "../../modules/revenue-distribution-token/contracts/test/Invariants.t.sol";
-
-
 contract xMPLInvariants is RDTInvariants {
 
-    InvariantERC20User     newErc20User;
-    Migrator               migrator;
-    MockERC20              newUnderlying;
-    xMPLInvariantOwner     owner_;
+    InvariantERC20User newErc20User;
+    Migrator           migrator;
+    MockERC20          newUnderlying;
+    xMPLInvariantOwner owner_;
 
     bool migrated;
 

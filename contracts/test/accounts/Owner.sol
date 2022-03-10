@@ -35,13 +35,9 @@ contract xMPLInvariantOwner is InvariantOwner {
     }
 
     function rdToken_scheduleAndPerforMigration() external {
-        uint256 currentTime = block.timestamp;
-
-        vm.warp(currentTime - 10 days - 1);
-
         xmpl.scheduleMigration(migrator, newUnderlying);
 
-        vm.warp(currentTime);
+        vm.warp(block.timestamp + 10 days + 1);
 
         xmpl.performMigration();
     }
