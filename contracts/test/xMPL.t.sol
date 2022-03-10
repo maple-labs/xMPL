@@ -8,9 +8,9 @@ import { Migrator }  from "../../modules/mpl-migration/contracts/Migrator.sol";
 import { MockERC20 } from "../../modules/mpl-migration/modules/erc20/contracts/test/mocks/MockERC20.sol";
 import { Staker }    from "../../modules/revenue-distribution-token/contracts/test/accounts/Staker.sol";
 
-import { Staker } from "../../modules/revenue-distribution-token/src/test/accounts/Staker.sol";
+import { Staker } from "../../modules/revenue-distribution-token/contracts/test/accounts/Staker.sol";
 
-import { EntryExitTest, RevenueStreamingTest, RevenueDistributionToken } from "../../modules/revenue-distribution-token/src/test/RevenueDistributionToken.t.sol";
+import { ExitTest, RevenueStreamingTest, RDT as RevenueDistributionToken } from "../../modules/revenue-distribution-token/contracts/test/RevenueDistributionToken.t.sol";
 
 import { xMPL } from "../xMPL.sol";
 
@@ -283,12 +283,12 @@ contract xMPLTest is TestUtils {
 
 }
 
-contract xMPLEntryExitTest is EntryExitTest {
+contract xMPLExitTest is ExitTest {
 
     function setUp() public override {
         super.setUp();
         
-        address rdt = address(new xMPL("xMPL", "xMPL", address(this), address(underlying), 1e30));
+        address rdt = address(new xMPL("xMPL", "xMPL", address(this), address(asset), 1e30));
 
         rdToken = RevenueDistributionToken(rdt);
     }
@@ -300,7 +300,7 @@ contract xMPLRevenueStreamingTest is RevenueStreamingTest {
     function setUp() public override {
         super.setUp();
         
-        address rdt = address(new xMPL("xMPL", "xMPL", address(this), address(underlying), 1e30));
+        address rdt = address(new xMPL("xMPL", "xMPL", address(this), address(asset), 1e30));
 
         rdToken = RevenueDistributionToken(rdt);
     }
@@ -321,7 +321,7 @@ contract FullMigrationTest is TestUtils {
 
     function setUp() public virtual {
         // Use non-zero timestamp
-        start = 10_000;
+        start = 10_000_000;
         vm.warp(start);
 
         underlying    = new MockERC20("Old Token", "OT", 18);
@@ -342,16 +342,16 @@ contract FullMigrationTest is TestUtils {
         staker.erc20_approve(address(underlying), address(rdToken), depositAmount);
         staker.rdToken_deposit(address(rdToken), depositAmount);
 
-        assertEq(rdToken.freeUnderlying(),      depositAmount);
-        assertEq(rdToken.totalHoldings(),       depositAmount);
-        assertEq(rdToken.exchangeRate(),        1e30);
+        assertEq(rdToken.freeAssets(),      depositAmount);
+        assertEq(rdToken.totalAssets(),       depositAmount);
+        assertEq(rdToken.convertToAssets(1e30),        1e30);
         assertEq(rdToken.issuanceRate(),        0);
         assertEq(rdToken.lastUpdated(),         start);
         assertEq(rdToken.vestingPeriodFinish(), 0);
 
         vm.warp(start + 1 days);
 
-        assertEq(rdToken.totalHoldings(),  depositAmount);  // No change
+        assertEq(rdToken.totalAssets(),  depositAmount);  // No change
 
         vm.warp(start);  // Warp back after demonstrating totalHoldings is not time-dependent before vesting starts
 
@@ -359,9 +359,9 @@ contract FullMigrationTest is TestUtils {
 
         uint256 expectedRate = vestingAmount * 1e30 / vestingPeriod;
 
-        assertEq(rdToken.freeUnderlying(),      depositAmount);
-        assertEq(rdToken.totalHoldings(),       depositAmount);
-        assertEq(rdToken.exchangeRate(),        1e30);
+        assertEq(rdToken.freeAssets(),      depositAmount);
+        assertEq(rdToken.totalAssets(),       depositAmount);
+        assertEq(rdToken.convertToAssets(1e30),        1e30);
         assertEq(rdToken.issuanceRate(),        expectedRate);
         assertEq(rdToken.lastUpdated(),         start);
         assertEq(rdToken.vestingPeriodFinish(), start + vestingPeriod);
@@ -372,16 +372,23 @@ contract FullMigrationTest is TestUtils {
 
             uint256 expectedTotalHoldings = depositAmount + expectedRate * (block.timestamp - start) / 1e30;
 
-            assertWithinDiff(rdToken.balanceOfUnderlying(address(staker)), expectedTotalHoldings, 1);
+            assertWithinDiff(rdToken.balanceOfAssets(address(staker)), expectedTotalHoldings, 1);
 
             // Do the migration
             if (i == 5) {
                 newUnderlying.mint(address(migrator), underlying.balanceOf(address(rdToken)));
-                rdToken.migrateAll(address(migrator), address(newUnderlying));
+
+                // go back in time to schedule a migration
+                uint now = block.timestamp;
+                vm.warp(block.timestamp - 10 days - 1);
+                rdToken.scheduleMigration(address(migrator), address(newUnderlying));
+
+                vm.warp(now);
+                rdToken.performMigration();
             }
 
-            assertEq(rdToken.totalHoldings(), expectedTotalHoldings);
-            assertEq(rdToken.exchangeRate(),  expectedTotalHoldings * 1e30 / depositAmount);
+            assertEq(rdToken.totalAssets(), expectedTotalHoldings);
+            assertEq(rdToken.convertToAssets(1e30),  expectedTotalHoldings * 1e30 / depositAmount);
         }
 
         vm.warp(start + vestingPeriod);
@@ -390,10 +397,10 @@ contract FullMigrationTest is TestUtils {
 
         // Assertions below will use the newUnderlying token
 
-        assertWithinDiff(rdToken.balanceOfUnderlying(address(staker)), expectedFinalTotal, 2);
+        assertWithinDiff(rdToken.balanceOfAssets(address(staker)), expectedFinalTotal, 2);
 
-        assertWithinDiff(rdToken.totalHoldings(), expectedFinalTotal,                             1);
-        assertWithinDiff(rdToken.exchangeRate(),  rdToken.totalHoldings() * 1e30 / depositAmount, 1);  // Using totalHoldings because of rounding
+        assertWithinDiff(rdToken.totalAssets(), expectedFinalTotal,                             1);
+        assertWithinDiff(rdToken.convertToAssets(1e30),  rdToken.totalAssets() * 1e30 / depositAmount, 1);  // Using totalHoldings because of rounding
 
         assertEq(newUnderlying.balanceOf(address(rdToken)), depositAmount + vestingAmount);
         assertEq(underlying.balanceOf(address(rdToken)),    0);
@@ -403,17 +410,17 @@ contract FullMigrationTest is TestUtils {
 
         staker.rdToken_redeem(address(rdToken), depositAmount);  // Use `redeem` so rdToken amount can be used to burn 100% of tokens
 
-        assertWithinDiff(rdToken.freeUnderlying(), 0, 1);
-        assertWithinDiff(rdToken.totalHoldings(),  0, 1);
+        assertWithinDiff(rdToken.freeAssets(), 0, 1);
+        assertWithinDiff(rdToken.totalAssets(),  0, 1);
 
-        assertEq(rdToken.exchangeRate(),        1e30);                   // Exchange rate returns to zero when empty
+        assertEq(rdToken.convertToAssets(1e30),        1e30);                   // Exchange rate returns to zero when empty
         assertEq(rdToken.issuanceRate(),        expectedRate);           // TODO: Investigate implications of non-zero issuanceRate here
         assertEq(rdToken.lastUpdated(),         start + vestingPeriod);  // This makes issuanceRate * time zero
         assertEq(rdToken.vestingPeriodFinish(), start + vestingPeriod);
 
         assertWithinDiff(newUnderlying.balanceOf(address(rdToken)), 0, 2);
 
-        assertEq(rdToken.balanceOfUnderlying(address(staker)), 0);
+        assertEq(rdToken.balanceOfAssets(address(staker)), 0);
 
         assertWithinDiff(newUnderlying.balanceOf(address(staker)), depositAmount + vestingAmount, 2);
         assertWithinDiff(rdToken.balanceOf(address(staker)),    0,                             1);

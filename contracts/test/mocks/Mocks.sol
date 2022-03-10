@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.8.7;
 
-<<<<<<< HEAD
-=======
 import "../../xMPL.sol";
 
->>>>>>> 9bf9b21 (fix: basic invariant testing)
 contract CompromisedMigrator {
 
     address public immutable oldToken;
