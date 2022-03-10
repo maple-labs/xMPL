@@ -13,7 +13,7 @@ import { InvariantStakerManager } from "../../modules/revenue-distribution-token
 import { InvariantERC20User }     from "../../modules/revenue-distribution-token/contracts/test/accounts/ERC20User.sol";
 import { Warper }                 from "../../modules/revenue-distribution-token/contracts/test/accounts/Warper.sol";
 
-import { MockERC20 } from "../../modules/revenue-distribution-token/lib/erc20/src/test/mocks/MockERC20.sol";
+import { MockERC20 } from "../../modules/revenue-distribution-token/modules/erc20/contracts/test/mocks/MockERC20.sol";
 
 
 contract xMPLInvariants is TestUtils, InvariantTest {
