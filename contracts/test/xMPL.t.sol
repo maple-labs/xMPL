@@ -306,7 +306,7 @@ contract xMPLRevenueStreamingTest is RevenueStreamingTest {
 contract FullMigrationTest is TestUtils {
 
     Migrator  migrator;
-    MockERC20 underlying;     // todo update to use `asset` instead of `underlying`
+    MockERC20 underlying;     // TODO: update to use `asset` instead of `underlying`
     MockERC20 newUnderlying;
     xMPL      rdToken;
 

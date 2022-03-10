@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.8.7;
 
-
 import { Owner, InvariantOwner, MockERC20 } from "../../../modules/revenue-distribution-token/contracts/test/accounts/Owner.sol";
 
 import { IxMPL } from "../../interfaces/IxMPL.sol";
