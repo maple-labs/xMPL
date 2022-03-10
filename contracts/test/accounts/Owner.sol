@@ -34,9 +34,16 @@ contract xMPLInvariantOwner is InvariantOwner {
         newUnderlying = newUnderlying_; 
     }
 
-    function rdToken_migrateAll() external {
-        // MockERC20(newUnderlying).mint(migrator, underlying.balanceOf(migrator));
-        // xmpl.migrateAll(migrator, newUnderlying);
+    function rdToken_scheduleAndPerforMigration() external {
+        uint256 currentTime = block.timestamp;
+
+        vm.warp(currentTime - 10 days - 1);
+
+        xmpl.scheduleMigration(migrator, newUnderlying);
+
+        vm.warp(currentTime);
+
+        xmpl.performMigration();
     }
 
 }
