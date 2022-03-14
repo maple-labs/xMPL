@@ -40,7 +40,7 @@ jobs:
       shell: bash
       run: |
         git config --global url."https://github.com/".insteadOf "git@github.com:"
-        forge update
+        git submodule update --init --recursive
 
     - name: Run forge tests
       env:
