@@ -36,7 +36,6 @@ contract xMPLInvariants is RDTInvariants {
         _warper        = new Warper();
 
         // Required to prevent `acceptOwner` from being a target function
-        // TODO: Investigate hevm.store error: `hevm: internal error: unexpected failure code`
         _rdToken.setOwner(address(owner_));
 
         // Performs random transfers of underlying into contract
