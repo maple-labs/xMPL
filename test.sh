@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-while getopts p:m: flag
+while getopts p:t: flag
 do
     case "${flag}" in
         p) profile=${OPTARG};;
-        m) match=${OPTARG};;
+        t) test=${OPTARG};;
     esac
 done
 

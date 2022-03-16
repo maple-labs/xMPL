@@ -282,26 +282,6 @@ contract xMPLTest is TestUtils {
 
 }
 
-contract xMPLExitTest is ExitTest {
-
-    function setUp() public override {
-        super.setUp();
-        
-        rdToken = RevenueDistributionToken(address(new xMPL("xMPL", "xMPL", address(this), address(asset), 1e30)));
-    }
-
-}
-
-contract xMPLRevenueStreamingTest is RevenueStreamingTest {
-
-    function setUp() public override {
-        super.setUp();
-        
-        rdToken = RevenueDistributionToken(address(new xMPL("xMPL", "xMPL", address(this), address(asset), 1e30)));
-    }
-    
-}
-
 ///@dev Copied from modules/revenue-distribution-token/src/test/ReveneuDistributionToken.sol
 contract FullMigrationTest is TestUtils {
 
