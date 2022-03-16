@@ -10,16 +10,27 @@ This repo contains a set of contracts to facilitate on-chain distribution of pro
 
 xMPL inherits the core functionality from Maple's [Revenue Distribution Token](https://github.com/maple-labs/revenue-distribution-token), which allows users to lock assets to earn rewards distributions based on a vesting schedule, with the increased functionality to perform a one time asset migration for the underlying token. This migration will interact with the contracts defined in [mpl-migration](https://github.com/maple-labs/mpl-migration).
 
+This mechanism is present in case an MPL migration is ever needed, which would require approval of the Maple DAO. The transaction that perform the migration has a time delay, which allows any parties to withdraw before the changes take effect.
+
 ![One Time xMPL Migration Diagram](https://user-images.githubusercontent.com/44272939/156459811-1a4b623c-932a-4ac4-b9e7-147ccfa1c6ca.png)
 
 ### One-Time xMPL Migration
-1. Governor address calls `performMigration`. This is only possible after calling `scheduleMigration` and waiting the minimum delay period, 10 days. This timelock mechanism is put in place to ensure that users have the opportunity to exit the contract if they do not agree with the migration contract that is being used (if it is malicious for example).
 
-2. The xMPL contract deposits its entire balance of MPL to the migrator contract.
+This allows a seamless and safe migration for all users that have staked their MPL into the xMPL contract.
 
-3. The migrator contract takes the MPL amount and returns the exact same amount of MPLv2.
+1. The first step to trigger a migration is for the contract governor to call `scheduleMigration`, which sets a execution to occur at least 10 days from the transaction time. In the meantime, all functionality in the xMPL contract remain operational.
 
-4. The xMPL contract changes the underlying asset to track the new MPLv2 token.
+2. During this period, any party that disagrees with the scheduled migration can withdraw their funds from the contract.
+
+3. After the time delay, anyone can call `performMigration`, which executes the migration with the parameters set 10 days prior.
+
+4. During this migration,the xMPL contract deposits its entire balance of MPL to the migrator contract, which includes non vested and vested funds.
+
+5. The migrator contract takes the MPL amount and returns the exact same amount of MPLv2, with a 1:1 ratio. The MPL tokens will remain locked in the migrator contract so they cannot be migrated twice.
+
+6. In the last step, the address defined as `asset` in xMPL contract is switched from MPLv1 to the newly migrated MPLv2 address. From that point on, all subsequent operations will be in relation to the new migrated token.
+
+Holders of the xMPL token do not need to perform any action in order to migrate their tokens, however holders that do not interact with the xMPL contract would need to perform a migration by themselves.
 
 ## Testing and Development
 #### Setup
