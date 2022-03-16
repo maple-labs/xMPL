@@ -15,33 +15,33 @@ import { MutableXMPL } from "./mocks/Mocks.sol";
 
 contract xMPLInvariants is RDTInvariants {
 
-    InvariantERC20User newErc20User;
-    Migrator           migrator;
-    MockERC20          newUnderlying;
-    xMPLInvariantOwner owner_;
+    InvariantERC20User _newErc20User;
+    Migrator           _migrator;
+    MockERC20          _newUnderlying;
+    xMPLInvariantOwner owner_;  // Different from inherited _owner
 
     bool migrated;
 
     function setUp() public override {
-        underlying    = new MockERC20("MockToken", "MT", 18);
-        newUnderlying = new MockERC20("NewMockToken", "NMT", 18);
-        migrator      = new Migrator(address(underlying), address(newUnderlying));
-        
-        rdToken       = MutableRDT(address(new MutableXMPL("Revenue Distribution Token", "RDT", address(this), address(underlying), 1e30)));
-        
-        erc20User     = new InvariantERC20User(address(rdToken), address(underlying));
-        newErc20User  = new InvariantERC20User(address(rdToken), address(underlying));
-        stakerManager = new InvariantStakerManager(address(rdToken), address(underlying));
-        owner_        = new xMPLInvariantOwner(address(rdToken), address(underlying), address(migrator), address(newUnderlying));
-        warper        = new Warper();
+        _underlying    = new MockERC20("MockToken", "MT", 18);
+        _newUnderlying = new MockERC20("NewMockToken", "NMT", 18);
+        _migrator      = new Migrator(address(_underlying), address(_newUnderlying));
+
+        _rdToken       = MutableRDT(address(new MutableXMPL("Revenue Distribution Token", "RDT", address(this), address(_underlying), 1e30)));
+
+        _erc20User     = new InvariantERC20User(address(_rdToken), address(_underlying));
+        _newErc20User  = new InvariantERC20User(address(_rdToken), address(_underlying));
+        _stakerManager = new InvariantStakerManager(address(_rdToken), address(_underlying));
+        owner_         = new xMPLInvariantOwner(address(_rdToken), address(_underlying), address(_migrator), address(_newUnderlying));
+        _warper        = new Warper();
 
         // Required to prevent `acceptOwner` from being a target function
         // TODO: Investigate hevm.store error: `hevm: internal error: unexpected failure code`
-        rdToken.setOwner(address(owner_));
+        _rdToken.setOwner(address(owner_));
 
         // Performs random transfers of underlying into contract
-        addTargetContract(address(erc20User));
-        addTargetContract(address(newErc20User));
+        addTargetContract(address(_erc20User));
+        addTargetContract(address(_newErc20User));
 
         // Performs random transfers of underlying into contract
         // Performs random updateVestingSchedule calls
@@ -51,13 +51,13 @@ contract xMPLInvariants is RDTInvariants {
         // Performs random deposit calls from a random instantiated staker
         // Performs random withdraw calls from a random instantiated staker
         // Performs random redeem calls from a random instantiated staker
-        addTargetContract(address(stakerManager));
+        addTargetContract(address(_stakerManager));
 
         // Peforms random warps forward in time
-        addTargetContract(address(warper));
+        addTargetContract(address(_warper));
 
         // Create one staker to prevent underflows on index calculations
-        stakerManager.createStaker();
+        _stakerManager.createStaker();
     }
 
 }

@@ -1,11 +1,20 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.8.7;
 
-import { ERC20Permit, RevenueDistributionToken } from "../modules/revenue-distribution-token/contracts/RevenueDistributionToken.sol";
+import { ERC20, RevenueDistributionToken } from "../modules/revenue-distribution-token/contracts/RevenueDistributionToken.sol";
 
 import { Migrator } from "../modules/mpl-migration/contracts/Migrator.sol";
 
 import { IxMPL } from "./interfaces/IxMPL.sol";
+
+/*
+    ██╗  ██╗███╗   ███╗██████╗ ██╗
+    ╚██╗██╔╝████╗ ████║██╔══██╗██║
+     ╚███╔╝ ██╔████╔██║██████╔╝██║
+     ██╔██╗ ██║╚██╔╝██║██╔═══╝ ██║
+    ██╔╝ ██╗██║ ╚═╝ ██║██║     ███████╗
+    ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝     ╚══════╝
+*/
 
 contract xMPL is IxMPL, RevenueDistributionToken {
 
@@ -49,14 +58,14 @@ contract xMPL is IxMPL, RevenueDistributionToken {
         require(migrationTimestamp != 0,               "xMPL:PM:NOT_SCHEDULED");
         require(block.timestamp >= migrationTimestamp, "xMPL:PM:TOO_EARLY");
 
-        uint256 oldAssetBalanceBeforeMigration = ERC20Permit(oldAsset).balanceOf(address(this));
-        uint256 newAssetBalanceBeforeMigration = ERC20Permit(newAsset).balanceOf(address(this));
+        uint256 oldAssetBalanceBeforeMigration = ERC20(oldAsset).balanceOf(address(this));
+        uint256 newAssetBalanceBeforeMigration = ERC20(newAsset).balanceOf(address(this));
 
-        require(ERC20Permit(oldAsset).approve(migrator, oldAssetBalanceBeforeMigration), "xMPL:PM:APPROVAL_FAILED");
+        require(ERC20(oldAsset).approve(migrator, oldAssetBalanceBeforeMigration), "xMPL:PM:APPROVAL_FAILED");
 
         Migrator(migrator).migrate(oldAssetBalanceBeforeMigration);
 
-        require(ERC20Permit(newAsset).balanceOf(address(this)) - newAssetBalanceBeforeMigration == oldAssetBalanceBeforeMigration, "xMPL:PM:WRONG_AMOUNT");
+        require(ERC20(newAsset).balanceOf(address(this)) - newAssetBalanceBeforeMigration == oldAssetBalanceBeforeMigration, "xMPL:PM:WRONG_AMOUNT");
 
         emit MigrationPerformed(oldAsset, newAsset, oldAssetBalanceBeforeMigration);
 
