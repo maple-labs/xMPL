@@ -286,7 +286,7 @@ contract xMPLTest is TestUtils {
 contract FullMigrationTest is TestUtils {
 
     Migrator  migrator;
-    MockERC20 asset;   
+    MockERC20 asset;
     MockERC20 newAsset;
     xMPL      rdToken;
 
@@ -301,14 +301,14 @@ contract FullMigrationTest is TestUtils {
 
         asset    = new MockERC20("Old Token", "OT", 18);
         newAsset = new MockERC20("New Token", "NT", 18);
-        migrator      = new Migrator(address(asset), address(newAsset));
-        rdToken       = new xMPL("Revenue Distribution Token", "RDT", address(this), address(asset), 1e30);
+        migrator = new Migrator(address(asset), address(newAsset));
+        rdToken  = new xMPL("Revenue Distribution Token", "RDT", address(this), address(asset), 1e30);
     }
 
     function test_fullMigrationStory(uint256 depositAmount, uint256 vestingAmount, uint256 vestingPeriod) external {
         depositAmount = constrictToRange(depositAmount, 1e6,        1e30);                    // 1 trillion at WAD precision
         vestingAmount = constrictToRange(vestingAmount, 1e6,        1e30);                    // 1 trillion at WAD precision
-        vestingPeriod = constrictToRange(vestingPeriod, 10 seconds, 100_000 days) / 10 * 10;  // Must be divisible by 10 for for loop 10% increment calculations 
+        vestingPeriod = constrictToRange(vestingPeriod, 10 seconds, 100_000 days) / 10 * 10;  // Must be divisible by 10 for for loop 10% increment calculations
 
         Staker staker = new Staker();
 
@@ -374,14 +374,14 @@ contract FullMigrationTest is TestUtils {
 
         assertWithinDiff(rdToken.balanceOfAssets(address(staker)), expectedFinalTotal, 2);
 
-        assertWithinDiff(rdToken.totalAssets(),         expectedFinalTotal,                             1);
+        assertWithinDiff(rdToken.totalAssets(),         expectedFinalTotal,                           1);
         assertWithinDiff(rdToken.convertToAssets(1e30), rdToken.totalAssets() * 1e30 / depositAmount, 1);  // Using totalHoldings because of rounding
 
         assertEq(newAsset.balanceOf(address(rdToken)), depositAmount + vestingAmount);
         assertEq(asset.balanceOf(address(rdToken)),    0);
 
         assertEq(newAsset.balanceOf(address(staker)), 0);
-        assertEq(rdToken.balanceOf(address(staker)),       depositAmount);
+        assertEq(rdToken.balanceOf(address(staker)),  depositAmount);
 
         staker.rdToken_redeem(address(rdToken), depositAmount);  // Use `redeem` so rdToken amount can be used to burn 100% of tokens
 
@@ -389,7 +389,7 @@ contract FullMigrationTest is TestUtils {
         assertWithinDiff(rdToken.totalAssets(), 0, 1);
 
         assertEq(rdToken.convertToAssets(1e30), 1e30);                    // Exchange rate returns to zero when empty
-        assertEq(rdToken.issuanceRate(),        expectedRate);        
+        assertEq(rdToken.issuanceRate(),        expectedRate);
         assertEq(rdToken.lastUpdated(),         start + vestingPeriod);   // This makes issuanceRate * time zero
         assertEq(rdToken.vestingPeriodFinish(), start + vestingPeriod);
 
@@ -398,7 +398,7 @@ contract FullMigrationTest is TestUtils {
         assertEq(rdToken.balanceOfAssets(address(staker)), 0);
 
         assertWithinDiff(newAsset.balanceOf(address(staker)), depositAmount + vestingAmount, 2);
-        assertWithinDiff(rdToken.balanceOf(address(staker)),       0,                               1);
+        assertWithinDiff(rdToken.balanceOf(address(staker)),  0,                             1);
 
         assertEq(asset.balanceOf(address(staker)), 0);
     }
