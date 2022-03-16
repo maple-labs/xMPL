@@ -286,8 +286,8 @@ contract xMPLTest is TestUtils {
 contract FullMigrationTest is TestUtils {
 
     Migrator  migrator;
-    MockERC20 underlying;     // TODO: update to use `asset` instead of `underlying`
-    MockERC20 newUnderlying;
+    MockERC20 asset;
+    MockERC20 newAsset;
     xMPL      rdToken;
 
     bytes constant ARITHMETIC_ERROR = abi.encodeWithSignature("Panic(uint256)", 0x11);
@@ -299,22 +299,22 @@ contract FullMigrationTest is TestUtils {
         start = 10_000_000;
         vm.warp(start);
 
-        underlying    = new MockERC20("Old Token", "OT", 18);
-        newUnderlying = new MockERC20("New Token", "NT", 18);
-        migrator      = new Migrator(address(underlying), address(newUnderlying));
-        rdToken       = new xMPL("Revenue Distribution Token", "RDT", address(this), address(underlying), 1e30);
+        asset    = new MockERC20("Old Token", "OT", 18);
+        newAsset = new MockERC20("New Token", "NT", 18);
+        migrator = new Migrator(address(asset), address(newAsset));
+        rdToken  = new xMPL("Revenue Distribution Token", "RDT", address(this), address(asset), 1e30);
     }
 
     function test_fullMigrationStory(uint256 depositAmount, uint256 vestingAmount, uint256 vestingPeriod) external {
         depositAmount = constrictToRange(depositAmount, 1e6,        1e30);                    // 1 trillion at WAD precision
         vestingAmount = constrictToRange(vestingAmount, 1e6,        1e30);                    // 1 trillion at WAD precision
-        vestingPeriod = constrictToRange(vestingPeriod, 10 seconds, 100_000 days) / 10 * 10;  // Must be divisible by 10 for for loop 10% increment calculations // TODO: Add a zero case test
+        vestingPeriod = constrictToRange(vestingPeriod, 10 seconds, 100_000 days) / 10 * 10;  // Must be divisible by 10 for for loop 10% increment calculations
 
         Staker staker = new Staker();
 
-        underlying.mint(address(staker), depositAmount);
+        asset.mint(address(staker), depositAmount);
 
-        staker.erc20_approve(address(underlying), address(rdToken), depositAmount);
+        staker.erc20_approve(address(asset), address(rdToken), depositAmount);
         staker.rdToken_deposit(address(rdToken), depositAmount);
 
         assertEq(rdToken.freeAssets(),          depositAmount);
@@ -351,12 +351,12 @@ contract FullMigrationTest is TestUtils {
 
             // Do the migration
             if (i == 5) {
-                newUnderlying.mint(address(migrator), underlying.balanceOf(address(rdToken)));
+                newAsset.mint(address(migrator), asset.balanceOf(address(rdToken)));
 
                 // go back in time to schedule a migration
                 uint256 currentTimestamp = block.timestamp;
                 vm.warp(block.timestamp - 10 days - 1);
-                rdToken.scheduleMigration(address(migrator), address(newUnderlying));
+                rdToken.scheduleMigration(address(migrator), address(newAsset));
 
                 vm.warp(currentTimestamp);
                 rdToken.performMigration();
@@ -370,18 +370,18 @@ contract FullMigrationTest is TestUtils {
 
         uint256 expectedFinalTotal = depositAmount + vestingAmount;
 
-        // Assertions below will use the newUnderlying token
+        // Assertions below will use the newAsset token
 
         assertWithinDiff(rdToken.balanceOfAssets(address(staker)), expectedFinalTotal, 2);
 
-        assertWithinDiff(rdToken.totalAssets(),         expectedFinalTotal,                             1);
+        assertWithinDiff(rdToken.totalAssets(),         expectedFinalTotal,                           1);
         assertWithinDiff(rdToken.convertToAssets(1e30), rdToken.totalAssets() * 1e30 / depositAmount, 1);  // Using totalHoldings because of rounding
 
-        assertEq(newUnderlying.balanceOf(address(rdToken)), depositAmount + vestingAmount);
-        assertEq(underlying.balanceOf(address(rdToken)),    0);
+        assertEq(newAsset.balanceOf(address(rdToken)), depositAmount + vestingAmount);
+        assertEq(asset.balanceOf(address(rdToken)),    0);
 
-        assertEq(newUnderlying.balanceOf(address(staker)), 0);
-        assertEq(rdToken.balanceOf(address(staker)),       depositAmount);
+        assertEq(newAsset.balanceOf(address(staker)), 0);
+        assertEq(rdToken.balanceOf(address(staker)),  depositAmount);
 
         staker.rdToken_redeem(address(rdToken), depositAmount);  // Use `redeem` so rdToken amount can be used to burn 100% of tokens
 
@@ -389,23 +389,23 @@ contract FullMigrationTest is TestUtils {
         assertWithinDiff(rdToken.totalAssets(), 0, 1);
 
         assertEq(rdToken.convertToAssets(1e30), 1e30);                    // Exchange rate returns to zero when empty
-        assertEq(rdToken.issuanceRate(),        expectedRate);            // TODO: Investigate implications of non-zero issuanceRate here
+        assertEq(rdToken.issuanceRate(),        expectedRate);
         assertEq(rdToken.lastUpdated(),         start + vestingPeriod);   // This makes issuanceRate * time zero
         assertEq(rdToken.vestingPeriodFinish(), start + vestingPeriod);
 
-        assertWithinDiff(newUnderlying.balanceOf(address(rdToken)), 0, 2);
+        assertWithinDiff(newAsset.balanceOf(address(rdToken)), 0, 2);
 
         assertEq(rdToken.balanceOfAssets(address(staker)), 0);
 
-        assertWithinDiff(newUnderlying.balanceOf(address(staker)), depositAmount + vestingAmount, 2);
-        assertWithinDiff(rdToken.balanceOf(address(staker)),       0,                               1);
+        assertWithinDiff(newAsset.balanceOf(address(staker)), depositAmount + vestingAmount, 2);
+        assertWithinDiff(rdToken.balanceOf(address(staker)),  0,                             1);
 
-        assertEq(underlying.balanceOf(address(staker)), 0);
+        assertEq(asset.balanceOf(address(staker)), 0);
     }
 
     function _depositAndUpdateVesting(uint256 vestingAmount_, uint256 vestingPeriod_) internal {
-        underlying.mint(address(this), vestingAmount_);
-        underlying.transfer(address(rdToken), vestingAmount_);
+        asset.mint(address(this), vestingAmount_);
+        asset.transfer(address(rdToken), vestingAmount_);
         rdToken.updateVestingSchedule(vestingPeriod_);
     }
 
