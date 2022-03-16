@@ -5,8 +5,8 @@ import "../../xMPL.sol";
 
 contract CompromisedMigrator {
 
-    address public immutable oldToken;
     address public immutable newToken;
+    address public immutable oldToken;
 
     constructor(address oldToken_, address newToken_) {
         oldToken = oldToken_;
@@ -16,7 +16,7 @@ contract CompromisedMigrator {
     function migrate(uint256 amount_) external {
         // do nothing
     }
-    
+
 }
 
 contract MutableXMPL is xMPL {

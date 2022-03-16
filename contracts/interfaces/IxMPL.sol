@@ -63,6 +63,12 @@ interface IxMPL is IRevenueDistributionToken {
     function MINIMUM_MIGRATION_DELAY() external pure returns (uint256 minimumMigrationDelay_);
 
     /**
+    *  @dev    Get the timestamp that a migration is scheduled for.
+    *  @return scheduledMigrationTimestamp_ The timestamp of the migration.
+    */
+    function scheduledMigrationTimestamp() external view returns (uint256 scheduledMigrationTimestamp_);
+
+    /**
     *  @dev    The address of the migrator contract to be used during the scheduled migration.
     *  @return scheduledMigrator_ The address of the migrator.
     */
@@ -73,11 +79,5 @@ interface IxMPL is IRevenueDistributionToken {
     *  @return scheduledNewAsset_ The address of the new asset token.
     */
     function scheduledNewAsset() external view returns (address scheduledNewAsset_);
-
-    /**
-    *  @dev    Get the timestamp that a migration is scheduled for.
-    *  @return scheduledMigrationTimestamp_ The timestamp of the migration.
-    */
-    function scheduledMigrationTimestamp() external view returns (uint256 scheduledMigrationTimestamp_);
 
 }

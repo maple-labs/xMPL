@@ -30,10 +30,10 @@ contract xMPLInvariantOwner is InvariantOwner {
 
     constructor(address rdToken_, address underlying_, address migrator_, address newUnderlying_) InvariantOwner(rdToken_, underlying_){
         migrator      = migrator_;
-        newUnderlying = newUnderlying_; 
+        newUnderlying = newUnderlying_;
     }
 
-    function rdToken_scheduleAndPerforMigration() external {
+    function rdToken_scheduleAndPerformMigration() external {
         xmpl.scheduleMigration(migrator, newUnderlying);
 
         vm.warp(block.timestamp + 10 days + 1);
