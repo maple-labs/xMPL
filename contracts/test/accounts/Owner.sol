@@ -28,8 +28,8 @@ contract xMPLInvariantOwner is InvariantOwner {
 
     IxMPL xmpl = IxMPL(address(_rdToken));
 
-    constructor(address rdToken_, address underlying_, address migrator_, address newUnderlying_) InvariantOwner(rdToken_, underlying_){
-        _migrator      = migrator_;
+    constructor(address rdToken_, address underlying_, address migrator_, address newUnderlying_) InvariantOwner(rdToken_, underlying_) {
+        _migrator     = migrator_;
         newUnderlying = newUnderlying_;
     }
 
