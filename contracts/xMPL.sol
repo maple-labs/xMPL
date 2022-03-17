@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity 0.8.7;
 
+import { Migrator }                        from "../modules/mpl-migration/contracts/Migrator.sol";
 import { ERC20, RevenueDistributionToken } from "../modules/revenue-distribution-token/contracts/RevenueDistributionToken.sol";
-
-import { Migrator } from "../modules/mpl-migration/contracts/Migrator.sol";
 
 import { IxMPL } from "./interfaces/IxMPL.sol";
 
