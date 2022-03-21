@@ -42,7 +42,7 @@ jobs:
         git config --global url."https://github.com/".insteadOf "git@github.com:"
         git submodule update --init --recursive
 
-    - name: Run forge tests
+    - name: 30k fuzz run test on push to main
       env:
         ETH_RPC_URL: ${{ secrets.ETH_RPC_URL }}
       run: ./test.sh -p super_deep
