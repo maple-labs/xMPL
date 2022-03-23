@@ -17,5 +17,5 @@ if [ -z "$test" ];
 then
     forge test --match-path "$PWD/contracts/test/*";
 else
-    forge test --match "$match";
+    forge test --match "$test";
 fi
