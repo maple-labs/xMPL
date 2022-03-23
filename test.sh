@@ -15,7 +15,7 @@ echo Using profile: $FOUNDRY_PROFILE
 
 if [ -z "$test" ];
 then
-    forge test -vvv --match-path "$PWD/contracts/test/*";
+    forge test --match-path "$PWD/contracts/test/*";
 else
-    forge test --match "$match" -vvv;
+    forge test --match "$match";
 fi
