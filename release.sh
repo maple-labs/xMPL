@@ -32,12 +32,18 @@ mkdir -p package/abis
 paths=($(cat ./package.yaml | grep "  - path:" | sed -r 's/.{10}//'))
 names=($(cat ./package.yaml | grep "    contractName:" | sed -r 's/.{18}//'))
 
-for i in "${!paths[@]}"; do
-    cat ./out/${names[i]}.sol/${names[i]}.json | pbcopy
-#   cat ./out/${names[i]}.sol.json | jq ".contracts | .\"${paths[i]}\" | .${names[i]}" > package/artifacts/${names[i]}.json
-#   cat ./out/${names[i]}.sol.json | jq ".contracts | .\"${paths[i]}\" | .${names[i]} | .abi" > package/abis/${names[i]}.json
-done
+if [ -f "./out/dapp.sol.json" ]; then
+  for i in "${!paths[@]}"; do
+    cat ./out/dapp.sol.json | jq ".contracts | .\"${paths[i]}\" | .${names[i]}" > package/artifacts/${names[i]}.json
+    cat ./out/dapp.sol.json | jq ".contracts | .\"${paths[i]}\" | .${names[i]} | .abi" > package/abis/${names[i]}.json
+  done
+else
+  for i in "${!paths[@]}"; do
+    cat ./out/${names[i]}.sol/${names[i]}.json | jq "{ abi: .abi, evm: { bytecode: .bytecode, deployedBytecode: .deployedBytecode } }" > package/artifacts/${names[i]}.json
+    cat ./out/${names[i]}.sol/${names[i]}.json | jq ".abi" > package/abis/${names[i]}.json
+  done
+fi
 
-# npm publish ./package --access public
+npm publish ./package --access public
 
-# rm -rf ./package
+rm -rf ./package
