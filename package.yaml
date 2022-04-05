@@ -1,0 +1,7 @@
+name: xMPL
+version: 1.0.0-rc.0
+source: contracts
+packages:
+  - path: contracts/xMPL.sol
+    contractName: xMPL
+customDescription: Maple Loan Artifacts and ABIs
