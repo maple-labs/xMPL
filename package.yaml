@@ -1,5 +1,5 @@
 name: xmpl
-version: 1.0.0-rc.0
+version: 1.0.0
 source: contracts
 packages:
   - path: contracts/xMPL.sol
