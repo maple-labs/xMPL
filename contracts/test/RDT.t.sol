@@ -21,7 +21,8 @@ import {
     RedeemFailureTests,
     RedeemRevertOnTransfers,
     RedeemTests,
-    RevenueStreamingTests,
+    UpdateVestingScheduleFailureTests,
+    UpdateVestingScheduleTests,
     WithdrawCallerNotOwnerTests,
     WithdrawFailureTests,
     WithdrawRevertOnTransfers,
@@ -158,7 +159,16 @@ contract xMPL_RDT_RedeemTests is RedeemTests {
 
 }
 
-contract xMPL_RDT_RevenueStreamingTests is RevenueStreamingTests {
+contract xMPL_RDT_UpdateVestingScheduleFailureTests is UpdateVestingScheduleFailureTests {
+
+    function setUp() override public {
+        super.setUp();
+        rdToken = RDT(address(new xMPL("Token", "TKN", address(this), address(asset), 1e30)));
+    }
+
+}
+
+contract xMPL_RDT_UpdateVestingScheduleTests is UpdateVestingScheduleTests {
 
     function setUp() override public {
         super.setUp();
