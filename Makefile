@@ -1,5 +1,6 @@
-invariant :; ./invariant-test.sh -t invariant
-test      :; ./test.sh -p local
-deep-test :; ./test.sh -p deep
-test-all  :; ./test.sh && ./invariant-test.sh -t invariant
-release   :; ./release.sh
+invariant  :; ./invariant-test.sh -t invariant
+test       :; ./test.sh -p local
+deep-test  :; ./test.sh -p deep
+test-all   :; ./test.sh && ./invariant-test.sh -t invariant
+release    :; ./release.sh
+dapp-build :; ./dapp-build.sh
