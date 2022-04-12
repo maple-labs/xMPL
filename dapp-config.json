@@ -1,0 +1,26 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "contracts/xMPL.sol": {
+            "urls": ["contracts/xMPL.sol"]
+        }
+    },
+    "settings": {
+        "optimizer": {
+            "enabled": false
+        },
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "abi",
+                    "devdoc",
+                    "userdoc",
+                    "metadata"
+                ]
+            }
+        },
+        "metadata": {
+            "bytecodeHash": "none"
+        }
+    }
+}
