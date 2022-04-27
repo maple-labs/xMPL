@@ -50,8 +50,8 @@ This project was built using [Foundry](https://github.com/gakonst/Foundry).
 ## Audit Reports
 | Auditor | Report link |
 |---|---|
-| Trail of Bits | [ToB Report - March 14, 2022](https://docs.google.com/viewer?url=https://github.com/maple-labs/maple-core/files/8507237/Maple.Finance.-.Final.Report.-.Fixes.pdf) |
-| Code 4rena | [C4 Report - March 14, 2022](https://code4rena.com/reports/2022-03-maple/) |
+| Trail of Bits | [ToB Report - April 12, 2022](https://docs.google.com/viewer?url=https://github.com/maple-labs/maple-core/files/8507237/Maple.Finance.-.Final.Report.-.Fixes.pdf) |
+| Code 4rena | [C4 Report - April 20, 2022](https://code4rena.com/reports/2022-03-maple/) |
 
 ## Bug Bounty
 
