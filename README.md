@@ -2,8 +2,6 @@
 
 ![Foundry CI](https://github.com/maple-labs/xmpl/actions/workflows/push-to-main.yml/badge.svg) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-**DISCLAIMER: This code has NOT been externally audited and is actively being developed. Please do not use in production without taking the appropriate steps to ensure maximum security.**
-
 This repo contains a set of contracts to facilitate on-chain distribution of protocol revenues denominated in MPL tokens. MPL distributions are made using RevenueDistributionToken (RDT) vesting schedule functionaltiy. This allows for multiple deposits to be made to the same contract on a recurring basis with custom vesting parameters.
 
 ## Capabilities
@@ -48,6 +46,22 @@ forge update
 - To run specific fuzz tests with a specified number of fuzz runs: `./test.sh -r <runs>` (e.g., `./test.sh -t testFuzz_performMigration -r 10000`)
 
 This project was built using [Foundry](https://github.com/gakonst/Foundry).
+
+## Audit Reports
+| Auditor | Report link |
+|---|---|
+| Trail of Bits | [ToB Report - March 14, 2022](https://docs.google.com/viewer?url=https://github.com/maple-labs/maple-core/files/8507237/Maple.Finance.-.Final.Report.-.Fixes.pdf) |
+| Code 4rena | [C4 Report - March 14, 2022](https://code4rena.com/reports/2022-03-maple/) |
+
+## Bug Bounty
+
+For all information related to the ongoing bug bounty for these contracts run by [Immunefi](https://immunefi.com/), please visit this [site](https://immunefi.com/bounty/maple/). 
+
+| Severity of Finding | Payout |
+|---|---|
+| Critical | $50,000 |
+| High | $25,000 |
+| Medium | $1,000 |
 
 ## About Maple
 [Maple Finance](https://maple.finance) is a decentralized corporate credit market. Maple provides capital to institutional borrowers through globally accessible fixed-income yield opportunities.
