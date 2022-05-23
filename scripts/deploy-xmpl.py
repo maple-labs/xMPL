@@ -4,17 +4,17 @@ import argparse
 
 def flatten(contract_path: str):
     output_dir: str = "./flattened"
-    isExist = os.path.exists(output_dir)
-    if not isExist:
+    is_exist = os.path.exists(output_dir)
+    if not is_exist:
         # Create a new directory because it does not exist 
         os.makedirs(output_dir)
-
-    subprocess.run(['forge', 'flatten', contract_path, '-o', output_dir])
-
-    output_path = os.path.join(output_dir, contract_name)
+        
     contract_name = os.path.split(contract_path)[-1]
+    output_path = os.path.join(output_dir, contract_name)
+    command = ['forge', 'flatten', contract_path, '-o', output_path]
+    subprocess.run(command, capture_output=True, text=True)
 
-    return os.path.join(output_path, contract_name)
+    return output_path
 
 def deploy(rpc_url: str, deployer_private_key: str, constructor_args: list, contract_path: str, contract_name: str):
     # EXAMPLE:
@@ -100,3 +100,5 @@ def main():
     # verify
     constructor_signature = "constructor(string,string,address,address,uint256)"
     verify(xMPL_address, flattened_path, contract_name, args.etherscan_key, constructor_signature, constructor_args, chain_id=4, optimization_runs=100000, compiler_version="v0.8.7+commit.e28d00a7")
+
+main()
