@@ -51,7 +51,7 @@ def encode_constructor_args(constructor_signature: str, constructor_args: list):
     base_command: list[str] = ["cast", "abi-encode"]
     command = base_command + [constructor_signature] + constructor_args
     result = subprocess.run(command, capture_output=True)
-    return result.stdout
+    return result.stdout.strip()
 
 def verify(contract_address: str, contract_path: str, contract_name: str, etherscan_key: str, constructor_signature: str, constructor_args: list = [], chain_id: int = 1, optimization_runs: int = 200, compiler_version: str = "v0.8.7+commit.e28d00a7"):
     # EXAMPLE:
