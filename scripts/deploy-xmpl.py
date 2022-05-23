@@ -2,6 +2,14 @@ import subprocess
 import os
 import argparse
 
+def clean():
+    command = ['forge', 'clean']
+    result = subprocess.run(command, capture_output=True, text=True)
+
+def build():
+    command = ['forge', 'build']
+    result = subprocess.run(command, capture_output=True, text=True)
+
 def flatten(contract_path: str):
     output_dir: str = "./flattened"
     is_exist = os.path.exists(output_dir)
@@ -33,7 +41,10 @@ def deploy(rpc_url: str, deployer_private_key: str, constructor_args: list, cont
     command = base_command + rpc_flag + constructor_args_flag + private_key_flag + script_args
 
     result = subprocess.run(command, capture_output=True, text=True)
-    output_address = result.stdout.split()[5]
+
+    # Example: 'No files changed, compilation skipped\nDeployer: 0x37789e01a058bbb079a278c7ba7256d285a262c9\nDeployed to: 0xcd38f7e582b7d50a4fb0ff34eba70ee6e792c03c\nTransaction hash: 0xeed9ac78a8b931ee1966df47bd946c9bdc97e038f2952b5bb0094a01b18e6aef\n'
+    output_address = result.stdout.split('\n')[2].split()[2]
+    
     return output_address
 
 def encode_constructor_args(constructor_signature: str, constructor_args: list):
@@ -83,6 +94,9 @@ def parse_command_line():
 def main():
     # get cli args
     args = parse_command_line()
+
+    clean()
+    build()
     
     # flatten
     contract_path = './contracts/xMPL.sol'
@@ -91,7 +105,7 @@ def main():
     # deploy
     owner_address = '0x37789e01a058Bbb079A278C7bA7256d285A262c9'
     MPL_address = '0xAeECBaebEEEEF8F55cb7756019F6f8A80BAB657A'
-    constructor_args = ["x Maple Token", "xMPL", owner_address, MPL_address, f"{1000000000000000000000000000000}"]
+    constructor_args = ['"x Maple Token"', '"xMPL"', owner_address, MPL_address, f"{1000000000000000000000000000000}"]
     contract_name = 'xMPL'
 
     xMPL_address = deploy(args.rpc_url, args.private_key, constructor_args, contract_path, contract_name)
