@@ -91,7 +91,7 @@ def main():
     # deploy
     owner_address = '0x37789e01a058Bbb079A278C7bA7256d285A262c9'
     MPL_address = '0xAeECBaebEEEEF8F55cb7756019F6f8A80BAB657A'
-    constructor_args = ["x Maple Token", "xMPL", owner_address, MPL_address, 1000000000000000000000000000000]
+    constructor_args = ["x Maple Token", "xMPL", owner_address, MPL_address, f"{1000000000000000000000000000000}"]
     contract_name = 'xMPL'
 
     xMPL_address = deploy(args.rpc_url, args.private_key, constructor_args, contract_path, contract_name)
