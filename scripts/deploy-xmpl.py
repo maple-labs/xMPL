@@ -85,20 +85,19 @@ def main():
     args = parse_command_line()
     
     # flatten
-    xMPL_path = "./contracts/xMPL.sol"
-    flattened_path = flatten(xMPL_path)
+    contract_path = './contracts/xMPL.sol'
+    # contract_path = flatten(contract_path) # Don't flatten for now as its broken.
     
     # deploy
     owner_address = '0x37789e01a058Bbb079A278C7bA7256d285A262c9'
     MPL_address = '0xAeECBaebEEEEF8F55cb7756019F6f8A80BAB657A'
     constructor_args = ["x Maple Token", "xMPL", owner_address, MPL_address, 1000000000000000000000000000000]
-    contract_path = 'contracts/xMPL.sol'
     contract_name = 'xMPL'
 
     xMPL_address = deploy(args.rpc_url, args.private_key, constructor_args, contract_path, contract_name)
 
     # verify
     constructor_signature = "constructor(string,string,address,address,uint256)"
-    verify(xMPL_address, flattened_path, contract_name, args.etherscan_key, constructor_signature, constructor_args, chain_id=4, optimization_runs=100000, compiler_version="v0.8.7+commit.e28d00a7")
+    verify(xMPL_address, contract_path, contract_name, args.etherscan_key, constructor_signature, constructor_args, chain_id=4, optimization_runs=100000, compiler_version="v0.8.7+commit.e28d00a7")
 
 main()
