@@ -6,10 +6,6 @@ def clean():
     command = ['forge', 'clean']
     result = subprocess.run(command, capture_output=True, text=True)
 
-def build():
-    command = ['forge', 'build']
-    result = subprocess.run(command, capture_output=True, text=True)
-
 def flatten(contract_path: str):
     output_dir: str = "./flattened"
     is_exist = os.path.exists(output_dir)
@@ -24,26 +20,27 @@ def flatten(contract_path: str):
 
     return output_path
 
-def deploy(rpc_url: str, deployer_private_key: str, constructor_args: list, contract_path: str, contract_name: str):
+def deploy(rpc_url: str, deployer_private_key: str, constructor_args: list, contract_path: str, contract_name: str, optimization_runs: int = 200):
     # EXAMPLE:
     # forge create --rpc-url $rpc \
     # --constructor-args $name $name $owner $MPL $precision \
+    # --optimizer-runs 100000 \
     # --private-key $pk \
     # $contract
 
     base_command: list[str] = ["forge", "create"]
     rpc_flag: list[str] = ["--rpc-url", rpc_url]
     constructor_args_flag = ["--constructor-args"] + constructor_args
+    optimizer_runs_flag = ["--optimizer-runs", f"{optimization_runs}"]
     private_key_flag: list[str] = ["--private-key", deployer_private_key]
     contract: str = f"{contract_path}:{contract_name}"
     script_args = [contract]
 
-    command = base_command + rpc_flag + constructor_args_flag + private_key_flag + script_args
-
+    command = base_command + rpc_flag + constructor_args_flag + optimizer_runs_flag + private_key_flag + script_args
     result = subprocess.run(command, capture_output=True, text=True)
 
     # Example: 'No files changed, compilation skipped\nDeployer: 0x37789e01a058bbb079a278c7ba7256d285a262c9\nDeployed to: 0xcd38f7e582b7d50a4fb0ff34eba70ee6e792c03c\nTransaction hash: 0xeed9ac78a8b931ee1966df47bd946c9bdc97e038f2952b5bb0094a01b18e6aef\n'
-    output_address = result.stdout.split('\n')[2].split()[2]
+    output_address = result.stdout.split('\n')[3].split()[2]
     
     return output_address
 
@@ -74,7 +71,7 @@ def verify(contract_address: str, contract_path: str, contract_name: str, ethers
     script_args = [contract_address, f"{contract_path}:{contract_name}", etherscan_key]
    
     command = base_command + chain_id_flag + optimization_runs_flag + constructor_args_flag + compiler_version_flag + script_args
-    result = subprocess.run(command, capture_output=True)
+    result = subprocess.run(command, capture_output=True, text=True)
     print(result.stdout)
 
 def parse_command_line():
@@ -96,7 +93,6 @@ def main():
     args = parse_command_line()
 
     clean()
-    build()
     
     # flatten
     contract_path = './contracts/xMPL.sol'
@@ -107,11 +103,12 @@ def main():
     MPL_address = '0xAeECBaebEEEEF8F55cb7756019F6f8A80BAB657A'
     constructor_args = ['"x Maple Token"', '"xMPL"', owner_address, MPL_address, f"{1000000000000000000000000000000}"]
     contract_name = 'xMPL'
+    optimizer_runs = 1000000
 
-    xMPL_address = deploy(args.rpc_url, args.private_key, constructor_args, contract_path, contract_name)
+    xMPL_address = deploy(args.rpc_url, args.private_key, constructor_args, contract_path, contract_name, optimizer_runs)
 
     # verify
     constructor_signature = "constructor(string,string,address,address,uint256)"
-    verify(xMPL_address, contract_path, contract_name, args.etherscan_key, constructor_signature, constructor_args, chain_id=4, optimization_runs=100000, compiler_version="v0.8.7+commit.e28d00a7")
+    verify(xMPL_address, contract_path, contract_name, args.etherscan_key, constructor_signature, constructor_args, chain_id=4, optimization_runs=optimizer_runs, compiler_version="v0.8.7+commit.e28d00a7")
 
 main()
