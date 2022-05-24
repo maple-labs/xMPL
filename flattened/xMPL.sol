@@ -8,8 +8,8 @@ pragma solidity 0.8.7;
  *          of protocol revenues denominated in MPL tokens. xMPL inherits the core
  *          functionality from Maple's Revenue Distribution Token, which allows
  *          users to lock assets to earn rewards distributions based on a vesting
- *          schedule, with the increased functionality to perform a one time asset
- *          migration for the underlying token.
+ *          schedule, with the added functionality to perform a one time asset
+ *          migration of the underlying token.
  *  @dev    This code was deployed at commit 9604d297132503cb05d74f2998c18b07f345ecc0
  *          (https://github.com/maple-labs/xMPL/releases/tag/v1.0.1).
  */
